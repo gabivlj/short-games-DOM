@@ -1,0 +1,16 @@
+.sprite-sheet {
+  /* Source of sprite */
+  background-image: url('./img/1.png');
+  /* What sprite */
+  background-position: 0px 0px;
+  /* Dimensions of the sprite */
+  min-width: 64px;
+  min-height: 64px;
+  max-height: 64px;
+  max-width: 64px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
