@@ -128,14 +128,24 @@ function GameEng() {
 
   globalInputs = new Input();
   const LIFE_CYCLE_INTERVALS = [];
+  const reservedGameObjects = {};
 
   class Game {
     constructor(gamespeed = 1) {
+      this.gameID = guidGenerator();
       this._input = globalInputs;
       this.gamespeed = gamespeed;
       this.delta = 0.0;
       this.windowHeight = window.innerHeight;
       this.windowWidth = window.innerWidth;
+      this.destroyed = false;
+    }
+
+    /**
+     * @description When you wanna preload or you don't want some gameObjects to be destroyed when stopped add them to this.
+     */
+    reserve(...gameObjects) {
+      reservedGameObjects[this.gameID] = [...gameObjects];
     }
 
     start() {
@@ -152,8 +162,19 @@ function GameEng() {
           `There are GameObjects that don't exist in this game: GAME_OBJECTS: ${Game.__GAME_OBJECTS}`,
         );
       }
-
       Game.__CURRENT_GAME_DONT_DELETE_FROM_HERE_OR_YOU_BUG_YOUR_GAME_YOU_DECIDE = this;
+      // Check if the game has been destroyed before and instantiate the reserved
+      if (this.destroyed) {
+        // todo: reset the gameObjects if the user wants us to.
+        reservedGameObjects[this.gameID].forEach(element =>
+          root.appendChild(element.sprite),
+        );
+      }
+      Game.__GAME_OBJECTS = [
+        ...Game.__GAME_OBJECTS,
+        ...(reservedGameObjects[this.gameID] || []),
+      ];
+      Game.__GAME_OBJECTS_LENGTH = Game.__GAME_OBJECTS.length;
       window.onresize = () => {
         // check what is being resized.
         const v = () => {
@@ -221,6 +242,17 @@ function GameEng() {
       Game.__GAME_OBJECTS_LENGTH = 0;
       Game.__CURRENT_GAME_DONT_DELETE_FROM_HERE_OR_YOU_BUG_YOUR_GAME_YOU_DECIDE = null;
       LIFE_CYCLE_INTERVALS.forEach(i => clearInterval(i));
+      this.destroyed = true;
+    }
+
+    /**
+     * @param {GameObject} gameObject
+     */
+    destroy(gameObject) {
+      const id = gameObject.instanceID;
+      Game.__GAME_OBJECTS = Game.__GAME_OBJECTS.filter(
+        gameObj => gameObj.instanceID !== id,
+      );
     }
   }
 
@@ -251,6 +283,7 @@ function GameEng() {
         offsetSpriteX = 0,
         offsetSpriteY = 0,
         typeOfMetrics = 'px',
+        reserved = false,
       },
       x = 0,
       y = 0,
@@ -335,21 +368,63 @@ function GameEng() {
       this.sprite = domInstance;
       this.__dom = domInstance;
       this._rotate();
-      Game.__GAME_OBJECTS.push(this);
-      Game.__GAME_OBJECTS_LENGTH++;
+      if (!reserved) {
+        Game.__GAME_OBJECTS.push(this);
+        Game.__GAME_OBJECTS_LENGTH++;
+      }
       if (
-        Game.__CURRENT_GAME_DONT_DELETE_FROM_HERE_OR_YOU_BUG_YOUR_GAME_YOU_DECIDE
+        Game.__CURRENT_GAME_DONT_DELETE_FROM_HERE_OR_YOU_BUG_YOUR_GAME_YOU_DECIDE &&
+        !reserved
       ) {
         this.awake();
         this.start();
       }
     }
 
-    detectCollision() {
-      // todo: BETTER ALGORITHM
+    /**
+     * @description Returns an object if it collided, returns false if not.
+     * @param {Number} offsetX The offset in X that you wanna check.
+     * @param {*} offsetY The offset in Y that you wanna check.
+     */
+    detectCollision(offsetX = 0, offsetY = 0) {
+      const bottom = this.y + this.height;
+      const right = this.x + this.width;
       const l = Game.__GAME_OBJECTS.length;
       for (let i = 0; i < l; i += 1) {
         const otherObject = Game.__GAME_OBJECTS[i];
+        if (otherObject.instanceID === this.instanceID) continue;
+        const tileBottom = otherObject.y + otherObject.height;
+        const tileRight = otherObject.x + otherObject.width;
+        const bCollision = Math.floor(tileBottom - this.y);
+        const tCollision = Math.floor(bottom - otherObject.y);
+        const lCollision = Math.floor(right - otherObject.x);
+        const rCollision = Math.floor(tileRight - this.x);
+
+        const conditions = {
+          left:
+            lCollision < rCollision &&
+            lCollision < tCollision &&
+            lCollision < bCollision,
+          top:
+            tCollision < rCollision &&
+            tCollision < lCollision &&
+            tCollision < bCollision,
+          right:
+            rCollision < tCollision &&
+            rCollision < lCollision &&
+            rCollision < bCollision,
+          bot:
+            bCollision < tCollision &&
+            bCollision < lCollision &&
+            bCollision < rCollision,
+          info: {
+            bCollision,
+            tCollision,
+            lCollision,
+            rCollision,
+          },
+          gameObject: otherObject,
+        };
         if (
           this.x < otherObject.x + otherObject.width &&
           this.instanceID !== otherObject.instanceID &&
@@ -357,7 +432,10 @@ function GameEng() {
           this.y < otherObject.y + otherObject.height &&
           this.height + this.y > otherObject.y
         )
-          return true;
+          return {
+            conditions,
+            collided: true,
+          };
       }
       return false;
     }
@@ -402,6 +480,11 @@ function GameEng() {
     position(x, y = 0) {
       this.x += x;
       this.y -= y;
+    }
+
+    setPosition(x, y) {
+      this.x = x;
+      this.y = y;
     }
 
     /**

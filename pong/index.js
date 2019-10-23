@@ -21,7 +21,51 @@ class Wall extends GameObject {
   }
 }
 // NOT IMPLEMENTED.
-class Ball extends GameObject {}
+class Ball extends GameObject {
+  constructor(
+    width,
+    height,
+    l,
+    configuration,
+    x,
+    y,
+    speed = 3,
+    instanceIDPlayer1,
+    instanceIDPlayer2,
+  ) {
+    super(width, height, l, configuration, x, y);
+    this.speed = speed;
+    this.signX = 1;
+    this.signY = 1;
+    this.puntuationPlayer1 = 0;
+    this.puntuationPlayer2 = 0;
+    this.instanceIDPlayer1 = instanceIDPlayer1;
+    this.instanceIDPlayer2 = instanceIDPlayer2;
+  }
+
+  start() {}
+
+  collisionBall() {
+    const col = this.detectCollision();
+
+    if (!col) return;
+    if (col.conditions.bot) {
+      this.signY = -1;
+    } else if (col.conditions.top) {
+      this.signY = 1;
+    } else if (col.conditions.right) {
+      this.signX = 1;
+    } else this.signX = -1;
+  }
+
+  update() {
+    this.collisionBall();
+    this.position(
+      this.speed * this.signX * this.deltaTime,
+      this.speed * this.signY * this.deltaTime,
+    );
+  }
+}
 /**
  * @param {{ w: Number, h: Number, x: Number, y: Number}} configuration,
  * @description Creates a new wall.
@@ -33,6 +77,7 @@ const createWall = ({ w, h, x, y }) => {
     1,
     {
       backgroundColor: 'red',
+      reserved: true,
     },
     x,
     y,
@@ -56,6 +101,8 @@ class Paddle extends GameObject {
     this.STATE = STATE_MACHINE.WALKING;
     this.faceY = 0;
     this.player = player;
+    this.beforePos = { x: 0, y: 0 };
+    this.count = 0;
   }
 
   changeSpriteWalking() {
@@ -103,6 +150,14 @@ class Paddle extends GameObject {
   }
 
   update() {
+    const col = this.detectCollision();
+    if (this.count < 4) console.log(col);
+    this.count++;
+    if (col && this.beforePos.x !== 0) {
+      this.setPosition(this.beforePos.x, this.beforePos.y);
+      return;
+    }
+    this.beforePos = { x: this.x, y: this.y };
     this.position(
       this.speed * this.faceX * this.deltaTime,
       this.speed * this.faceY * this.deltaTime,
@@ -111,31 +166,17 @@ class Paddle extends GameObject {
 
   playerInput() {
     if (this.player) {
-      return Input.getInputs('UP', 'RIGHT', 'DOWN', 'LEFT', 'E');
+      return Input.getInputs('UP', 'RIGHT', 'DOWN', 'LEFT');
     }
-    return Input.getInputs('W', 'D', 'S', 'A', 'E');
+    return Input.getInputs('W', 'D', 'S', 'A');
   }
 
   lateUpdate() {
-    const [top, right, bot, left, rotate] = this.playerInput();
+    const [top, right, bot, left] = this.playerInput();
     this.faceX = right - left;
     this.faceY = top - bot;
-    this.degrees += rotate;
   }
 }
-
-// Circlee
-const ball = new Ball(
-  16,
-  16,
-  0,
-  {
-    backgroundColor: 'red',
-    borderRadius: '50%',
-  },
-  window.innerWidth / 2,
-  window.innerHeight / 2,
-);
 
 const palaFirst = new Paddle(
   30, // w
@@ -143,10 +184,11 @@ const palaFirst = new Paddle(
   0, // spriteLength none
   {
     backgroundColor: 'grey',
+    reserved: true,
   },
   300,
   300,
-  30, // speed
+  60, // speed
   0,
 );
 
@@ -156,10 +198,11 @@ const palaSecond = new Paddle(
   0, // spriteLength none
   {
     backgroundColor: 'grey',
+    reserved: true,
   },
   window.innerWidth - 300, // x
   window.innerHeight - 500, // y
-  30, // speed
+  60, // speed
   1,
 );
 
@@ -178,8 +221,39 @@ const wallBot = createWall({
   y: window.innerHeight - 100,
 });
 
+// Circlee
+const ball = new Ball(
+  16,
+  16,
+  0,
+  {
+    backgroundColor: 'red',
+    borderRadius: '50%',
+    reserved: true,
+  },
+  window.innerWidth / 2,
+  window.innerHeight / 2,
+  100,
+  wallLeft.x + wallLeft.width,
+  window.innerWidth - wallRight.width,
+  wallTop.y + wallTop.height,
+  window.innerHeight - wallBot.height,
+  palaFirst.instanceID,
+  palaSecond.instanceID,
+);
+
 const game = new Game();
+game.reserve(
+  palaFirst,
+  palaSecond,
+  wallBot,
+  wallTop,
+  wallLeft,
+  wallRight,
+  ball,
+);
 game.start();
+
 /**
  * SHOWING OFF THAT YOU CAN RESET THE GAME.
  */
