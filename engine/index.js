@@ -1,3 +1,4 @@
+/* eslint-disable no-continue */
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-param-reassign */
@@ -9,6 +10,30 @@
  * @returns {{Game: Game, Input: Input, GameObject: GameObject }}
  */
 function GameEng() {
+  class Utils {
+    /**
+     * @description Only works with Numbers and Strings
+     * @param {Object} copy, To what you wanna copy
+     * @param {Object} attributes, What you wanna copy
+     */
+    static keyCopies(copy, attributes) {
+      Object.keys(attributes).forEach(attribute => {
+        copy[attribute] = attributes[attribute];
+      });
+      return copy;
+    }
+
+    static guidGenerator() {
+      // Math.random should be unique because of its seeding algorithm.
+      // Convert it to base 36 (numbers + letters), and grab the first 9 characters
+      // after the decimal.
+      return `_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+    }
+  }
+
+  // INITIALIZE REQUEST ANIMATION FRAME.
   (function() {
     const requestAnimationFrame =
       window.requestAnimationFrame ||
@@ -20,28 +45,24 @@ function GameEng() {
       console.error('Error initializing requestAnimationFrame');
   })();
 
-  const root = document.getElementById('root');
+  // DOM ROOT.
+  let root = document.getElementById('root');
+  if (!root) {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+  }
   // set as default the background color as black.
   document.body.style.backgroundColor = 'black';
 
-  function guidGenerator() {
-    // Math.random should be unique because of its seeding algorithm.
-    // Convert it to base 36 (numbers + letters), and grab the first 9 characters
-    // after the decimal.
-    return `_${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
-  }
-
   /**
-   * @description Inputs keycode object, we'll also check here when user gets inputs if they exist and inform them
+   * @description Inputs keycode object, we'll also check here when user gets inputs if they exist and inform if it exist
    */
   const INPUTS = {
     LEFT: 37,
     UP: 38,
     RIGHT: 39,
     DOWN: 40,
-    // Get all the chars from there
+    // Get all the chars from there (Lazy way)
     ...new Array(25)
       .fill(0)
       .map((_, index) => String.fromCharCode(97 + index))
@@ -128,53 +149,73 @@ function GameEng() {
 
   globalInputs = new Input();
   const LIFE_CYCLE_INTERVALS = [];
-  const reservedGameObjects = {};
 
   class Game {
     constructor(gamespeed = 1) {
-      this.gameID = guidGenerator();
+      this.gameID = Utils.guidGenerator();
       this._input = globalInputs;
       this.gamespeed = gamespeed;
       this.delta = 0.0;
       this.windowHeight = window.innerHeight;
       this.windowWidth = window.innerWidth;
       this.destroyed = false;
+      this.running = false;
+      this.paused = false;
     }
 
     /**
      * @description When you wanna preload or you don't want some gameObjects to be destroyed when stopped add them to this.
      */
     reserve(...gameObjects) {
-      reservedGameObjects[this.gameID] = [...gameObjects];
+      Game.__reservedGameObjects[this.gameID] = [...gameObjects];
+      Game.__reservedResetGameObjects[this.gameID] = Game.__reservedGameObjects[
+        this.gameID
+      ]
+        .filter(gameObj => gameObj.reset)
+        .map(gameObj => Utils.keyCopies({}, gameObj));
+    }
+
+    pause() {
+      this.paused = true;
+    }
+
+    ready() {
+      this.paused = false;
     }
 
     start() {
       // Sanity check
-      if (
-        Game.__CURRENT_GAME_DONT_DELETE_FROM_HERE_OR_YOU_BUG_YOUR_GAME_YOU_DECIDE
-      )
+      if (Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude)
         throw new Error(
           `There is another game instance being played, please delete it.`,
         );
       // Sanity check v2
-      if (Game.__GAME_OBJECTS.length !== Game.__GAME_OBJECTS_LENGTH) {
+      if (Game.__gameObjects.length !== Game.__gameObjectsLength) {
         throw new Error(
-          `There are GameObjects that don't exist in this game: GAME_OBJECTS: ${Game.__GAME_OBJECTS}`,
+          `There are GameObjects that don't exist in this game: GAME_OBJECTS: ${Game.__gameObjects}`,
         );
       }
-      Game.__CURRENT_GAME_DONT_DELETE_FROM_HERE_OR_YOU_BUG_YOUR_GAME_YOU_DECIDE = this;
+
       // Check if the game has been destroyed before and instantiate the reserved
-      if (this.destroyed) {
-        // todo: reset the gameObjects if the user wants us to.
-        reservedGameObjects[this.gameID].forEach(element =>
-          root.appendChild(element.sprite),
-        );
+      if (Game.__IDGameStoredBefore !== this.gameID) {
+        let indexDeepCopy = 0;
+        (Game.__reservedGameObjects[this.gameID] || []).forEach(element => {
+          if (element.reset) {
+            element = Utils.keyCopies(
+              element,
+              Game.__reservedResetGameObjects[this.gameID][indexDeepCopy],
+            );
+            indexDeepCopy++;
+          }
+          root.appendChild(element.sprite);
+        });
       }
-      Game.__GAME_OBJECTS = [
-        ...Game.__GAME_OBJECTS,
-        ...(reservedGameObjects[this.gameID] || []),
+      Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude = this;
+      Game.__gameObjects = [
+        ...Game.__gameObjects,
+        ...(Game.__reservedGameObjects[this.gameID] || []),
       ];
-      Game.__GAME_OBJECTS_LENGTH = Game.__GAME_OBJECTS.length;
+      Game.__gameObjectsLength = Game.__gameObjects.length;
       window.onresize = () => {
         // check what is being resized.
         const v = () => {
@@ -185,7 +226,7 @@ function GameEng() {
         };
         const ratioX = v();
         const ratioY = v();
-        Game.__GAME_OBJECTS.forEach(g => {
+        Game.__gameObjects.forEach(g => {
           g.width /= ratioX;
           g.height /= ratioY;
           g.x /= ratioX;
@@ -195,7 +236,7 @@ function GameEng() {
         this.windowWidth = window.innerWidth;
       };
       // FIRST CALL.
-      Game.__GAME_OBJECTS.forEach(g => {
+      Game.__gameObjects.forEach(g => {
         g.inputs = this._input;
         g.sprite.style.display = '';
         g.awake();
@@ -204,7 +245,8 @@ function GameEng() {
       // SET INTERVAL
       LIFE_CYCLE_INTERVALS.push(
         setInterval(() => {
-          Game.__GAME_OBJECTS.forEach(g => {
+          if (this.paused) return;
+          Game.__gameObjects.forEach(g => {
             g.inputs = this._input;
             g.update();
             g._update();
@@ -213,10 +255,9 @@ function GameEng() {
       );
       const lateUpdate = () => {
         const dt = Date.now();
+        if (this.paused) return;
         // console.log(Game.__GAME_OBJECTS);
-        Game.__GAME_OBJECTS.forEach(g => {
-          g.inputs.right = this._input.right;
-          g.inputs.top = this._input.top;
+        Game.__gameObjects.forEach(g => {
           // Fixed update.
           g.fixedUpdate();
           g._update();
@@ -231,18 +272,25 @@ function GameEng() {
           requestAnimationFrame(lateUpdate);
         }, 60),
       );
+      this.running = true;
     }
 
     /**
-     * @description Total reset of the scene/game, the gameObjects will be destroyed and the DOM will be reseted.
+     * @description Stop the game
+     *              BEHAVIOUR:
+     *              *   only the reserved GameObjects will stay in the Game's memory.
+     *              *   only the reset and reserved: true will be reseted to original positions when loaded again.
+     *              *   you can start this game again but take in mind these behaviours.
      */
     stop() {
       root.innerHTML = '';
-      Game.__GAME_OBJECTS = [];
-      Game.__GAME_OBJECTS_LENGTH = 0;
-      Game.__CURRENT_GAME_DONT_DELETE_FROM_HERE_OR_YOU_BUG_YOUR_GAME_YOU_DECIDE = null;
+      Game.__gameObjects = [];
+      Game.__gameObjectsLength = 0;
+      Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude = null;
       LIFE_CYCLE_INTERVALS.forEach(i => clearInterval(i));
       this.destroyed = true;
+      Game.__IDGameStoredBefore = this.gameID;
+      this.running = false;
     }
 
     /**
@@ -250,23 +298,34 @@ function GameEng() {
      */
     destroy(gameObject) {
       const id = gameObject.instanceID;
-      Game.__GAME_OBJECTS = Game.__GAME_OBJECTS.filter(
+      Game.__gameObjects = Game.__gameObjects.filter(
         gameObj => gameObj.instanceID !== id,
       );
+      if (gameObject.reset) {
+        Game.__reservedResetGameObjects[this.gameID] = (
+          Game.__reservedResetGameObjects[this.gameID] || []
+        ).filter(gameObj => gameObj.instanceID !== id);
+      }
+      Game.__reservedGameObjects[this.gameID] = (
+        Game.__reservedGameObjects[this.gameID] || []
+      ).filter(gameObj => gameObj.instanceID !== id);
     }
   }
 
   // Game variables.
-  Game.__GAME_OBJECTS = [];
-  Game.__GAME_OBJECTS_LENGTH = 0;
-  Game.__CURRENT_GAME_DONT_DELETE_FROM_HERE_OR_YOU_BUG_YOUR_GAME_YOU_DECIDE = null;
-
+  Game.__gameObjects = [];
+  Game.__gameObjectsLength = 0;
+  Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude = null;
+  Game.__IDGameStoredBefore = '';
+  Game.__reservedGameObjects = {};
+  // Store data of reset: true GameObjects.
+  Game.__reservedResetGameObjects = {};
   /**
    * @description Inherit from this and you will be able to create your custom GameObjects!
    * @param {width Number} Width, width of your sprite or plain gameObject
    * @param {height Number} Height, height of your sprite or plain gameObject
    * @param {lengthOfSpriteSheet Number} lengthOfSpriteSheet, If you have a sprite sheet (or a single sprite) put a number here. If not just pass 0
-   * @param {{ backgroundColor: string, color: string, borderRadius: string, spriteSource: string, offsetSpriteX: Number, offsetSpriteY: Number, typeOfMetrics : Number }} configuration,  basic configuration, don't use typeOfMetrics and offsetSprites because they are not recommended unless you know what you're really doing
+   * @param {{ backgroundColor: string, color: string, borderRadius: string, spriteSource: string, offsetSpriteX: Number, offsetSpriteY: Number, typeOfMetrics : Number, reserved: Boolean, reset: Boolean }} configuration,  basic configuration, don't use typeOfMetrics and offsetSprites because they are not recommended unless you know what you're really doing
    * @param {x Number} XPosition
    * @param {y Number} YPosition
    */
@@ -284,6 +343,7 @@ function GameEng() {
         offsetSpriteY = 0,
         typeOfMetrics = 'px',
         reserved = false,
+        reset = false,
       },
       x = 0,
       y = 0,
@@ -326,7 +386,7 @@ function GameEng() {
        * @private
        * @constant
        */
-      this.instanceID = guidGenerator();
+      this.instanceID = Utils.guidGenerator();
       /**
        * @description inputs.
        * @constant
@@ -353,7 +413,7 @@ function GameEng() {
           ? `url('${spriteSource}')`
           : 'none';
       domInstance.style.backgroundColor = backgroundColor;
-      domInstance.style.display = Game.__CURRENT_GAME_DONT_DELETE_FROM_HERE_OR_YOU_BUG_YOUR_GAME_YOU_DECIDE
+      domInstance.style.display = Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude
         ? ''
         : 'none';
       this.typeOfMetric = typeOfMetrics;
@@ -368,12 +428,18 @@ function GameEng() {
       this.sprite = domInstance;
       this.__dom = domInstance;
       this._rotate();
+
       if (!reserved) {
-        Game.__GAME_OBJECTS.push(this);
-        Game.__GAME_OBJECTS_LENGTH++;
+        Game.__gameObjects.push(this);
+        Game.__gameObjectsLength++;
       }
+      if (reset && !reserved) {
+        console.warn('Reset won`t work if you don`t pass the reserved bool.');
+      }
+      this.reset = reset;
+
       if (
-        Game.__CURRENT_GAME_DONT_DELETE_FROM_HERE_OR_YOU_BUG_YOUR_GAME_YOU_DECIDE &&
+        Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude &&
         !reserved
       ) {
         this.awake();
@@ -390,9 +456,9 @@ function GameEng() {
     detectCollision(offsetX = 0, offsetY = 0) {
       const bottom = this.y + this.height;
       const right = this.x + this.width;
-      const l = Game.__GAME_OBJECTS.length;
+      const l = Game.__gameObjects.length;
       for (let i = 0; i < l; i += 1) {
-        const otherObject = Game.__GAME_OBJECTS[i];
+        const otherObject = Game.__gameObjects[i];
         if (otherObject.instanceID === this.instanceID) continue;
         const tileBottom = otherObject.y + otherObject.height;
         const tileRight = otherObject.x + otherObject.width;
@@ -540,6 +606,7 @@ function GameEng() {
     Game,
     GameObject,
     Input,
+    Utils,
   };
 }
 

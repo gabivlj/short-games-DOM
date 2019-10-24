@@ -4,7 +4,7 @@
 
 /**
  * @author Gabriel Villalonga Simón
- * @project Pong Game
+ * @project This is not a real PONG game, is just a show-off of new engine features.
  * @dependencies ../engine/index.js
  * @definitions GameObject and Game
  */
@@ -184,6 +184,7 @@ const palaFirst = new Paddle(
   {
     backgroundColor: 'grey',
     reserved: true,
+    reset: true,
   },
   300,
   300,
@@ -198,8 +199,23 @@ const palaSecond = new Paddle(
   {
     backgroundColor: 'grey',
     reserved: true,
+    reset: true,
   },
   window.innerWidth - 300, // x
+  window.innerHeight - 500, // y
+  60, // speed
+  1,
+);
+
+const palaSecond2 = new Paddle(
+  30, // w
+  300, // h
+  0, // spriteLength none
+  {
+    backgroundColor: 'grey',
+    reserved: true,
+  },
+  window.innerWidth - 600, // x
   window.innerHeight - 500, // y
   60, // speed
   1,
@@ -229,6 +245,7 @@ const ball = new Ball(
     backgroundColor: 'red',
     borderRadius: '50%',
     reserved: true,
+    reset: false,
   },
   window.innerWidth / 2,
   window.innerHeight / 2,
@@ -242,6 +259,7 @@ const ball = new Ball(
 );
 
 const game = new Game();
+const game2 = new Game();
 game.reserve(
   palaFirst,
   palaSecond,
@@ -251,25 +269,27 @@ game.reserve(
   wallRight,
   ball,
 );
+
 game.start();
+game2.reserve(palaFirst, palaSecond);
 
 /**
- * SHOWING OFF THAT YOU CAN RESET THE GAME.
+ * Showing off the pass through scenes.
  */
-// setInterval(() => {
-//   game.stop();
-//   new Paddle(
-//     30, // w
-//     300, // h
-//     0, // spriteLength none
-//     {
-//       backgroundColor: 'grey',
-//     },
-//     window.innerWidth - 300, // x
-//     window.innerHeight - 500, // y
-//     30, // speed
-//     1,
-//   );
-//   console.log(Game.__GAME_OBJECTS);
-//   game.start();
-// }, 1000);
+setInterval(() => {
+  if (game.running) {
+    game.stop();
+    game2.start();
+  } else {
+    game2.stop();
+    game.start();
+  }
+}, 1000);
+
+/**
+ * Showing pause behaviour.
+ */
+setInterval(() => {
+  if (game.paused) game.ready();
+  else game.pause();
+}, 100);
