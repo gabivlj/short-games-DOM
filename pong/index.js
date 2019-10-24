@@ -152,6 +152,7 @@ class Paddle extends GameObject {
 
   update() {
     const col = this.detectCollision();
+
     if (col.collided && this.beforePos.x !== 0) {
       this.setPosition(this.beforePos.x, this.beforePos.y);
       return;
@@ -289,7 +290,7 @@ setInterval(() => {
 /**
  * Showing pause behaviour.
  */
-setInterval(() => {
-  if (game.paused) game.ready();
-  else game.pause();
-}, 100);
+// setInterval(() => {
+//   if (game.paused) game.ready();
+//   else game.pause();
+// }, 100);

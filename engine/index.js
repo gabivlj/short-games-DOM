@@ -187,7 +187,7 @@ function GameEng() {
       // Sanity check
       if (Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude)
         throw new Error(
-          `There is another game instance being played, please delete it.`,
+          `There is another game instance being played, please use .stop() on it.`,
         );
       // Sanity check v2
       if (Game.__gameObjects.length !== Game.__gameObjectsLength) {
