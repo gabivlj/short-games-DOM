@@ -384,7 +384,8 @@ function GameEng() {
     /**
      * @description Returns an object if it collided, returns false if not.
      * @param {Number} offsetX The offset in X that you wanna check.
-     * @param {*} offsetY The offset in Y that you wanna check.
+     * @param {Number} offsetY The offset in Y that you wanna check.
+     * @returns {{Collided: Boolean ? ColliderInformation: { conditions: { left: Boolean, right: Boolean, top: Boolean, bot: Boolean}, info: { bCollision: Number, tCollision: Number, lCollision: Number, rCollision: Number}, gameObject: GameObject, collided: Boolean}}} Returns false if there isn't a collider
      */
     detectCollision(offsetX = 0, offsetY = 0) {
       const bottom = this.y + this.height;
@@ -433,11 +434,14 @@ function GameEng() {
           this.height + this.y > otherObject.y
         )
           return {
-            conditions,
             collided: true,
+            colliderInformation: {
+              conditions,
+              collided: true,
+            },
           };
       }
-      return false;
+      return { collided: false, colliderInformation: {} };
     }
 
     /**

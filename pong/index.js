@@ -48,12 +48,13 @@ class Ball extends GameObject {
   collisionBall() {
     const col = this.detectCollision();
 
-    if (!col) return;
-    if (col.conditions.bot) {
+    if (!col || !col.collided) return;
+
+    if (col.colliderInformation.conditions.bot) {
       this.signY = -1;
-    } else if (col.conditions.top) {
+    } else if (col.colliderInformation.conditions.top) {
       this.signY = 1;
-    } else if (col.conditions.right) {
+    } else if (col.colliderInformation.conditions.right) {
       this.signX = 1;
     } else this.signX = -1;
   }
@@ -151,9 +152,7 @@ class Paddle extends GameObject {
 
   update() {
     const col = this.detectCollision();
-    if (this.count < 4) console.log(col);
-    this.count++;
-    if (col && this.beforePos.x !== 0) {
+    if (col.collided && this.beforePos.x !== 0) {
       this.setPosition(this.beforePos.x, this.beforePos.y);
       return;
     }
