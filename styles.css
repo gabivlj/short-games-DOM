@@ -1,0 +1,42 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.menu {
+  background-color: rgb(238, 193, 177);
+  height: 100vh;
+  width: 100vw;
+  font-weight: 300;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: Helvetica neue, roboto;
+}
+
+button {
+  border: none;
+	font-family: inherit;
+	font-size: inherit;
+	color: inherit;
+	background: none;
+	cursor: pointer;
+	padding: 25px 80px;
+	display: inline-block;
+	margin: 15px 30px;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	font-weight: 700;
+	outline: none;
+	position: relative;
+	-webkit-transition: all 0.3s;
+	-moz-transition: all 0.3s;
+  transition: all 0.3s;
+  background-color: rgb(238, 193, 177);
+}
+
+button:hover {
+  background-color: rgb(241, 162, 133);
+}
