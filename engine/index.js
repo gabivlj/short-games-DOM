@@ -9,7 +9,7 @@
  * @private
  * @returns {{Game: Game, Input: Input, GameObject: GameObject }}
  */
-function GameEng() {
+function GameEng(backgroundColor) {
   class Utils {
     /**
      * @description Only works with Numbers and Strings
@@ -62,7 +62,7 @@ function GameEng() {
     document.body.appendChild(root);
   }
   // set as default the background color as black.
-  document.body.style.backgroundColor = 'black';
+  document.body.style.backgroundColor = backgroundColor;
 
   /**
    * @description Inputs keycode object, we'll also check here when user gets inputs if they exist and inform if it exist
@@ -211,6 +211,36 @@ function GameEng() {
       this.paused = false;
     }
 
+    resize() {
+      // check what is being resized.
+      const v = () => {
+        if (this.windowWidth === window.innerWidth) {
+          return this.windowHeight / window.innerHeight;
+        }
+        return this.windowWidth / window.innerWidth;
+      };
+      const ratioYY = this.windowHeight / window.innerHeight;
+      const ratioXX = this.windowWidth / window.innerWidth;
+      Game.__gameObjects.forEach(g => {
+        g.width /= ratioXX;
+        g.height /= ratioYY;
+        g.x /= ratioXX;
+        g.y /= ratioYY;
+        g.fontSize = g.fontSize ? g.fontSize / v() : g.fontSize;
+      });
+
+      Game.__reservedResetGameObjects[this.gameID].forEach(g => {
+        g.width /= ratioXX;
+        g.height /= ratioYY;
+        g.x /= ratioXX;
+        g.y /= ratioYY;
+        g.fontSize = g.fontSize ? g.fontSize / v() : g.fontSize;
+      });
+
+      this.windowHeight = window.innerHeight;
+      this.windowWidth = window.innerWidth;
+    }
+
     start() {
       // Sanity check
       if (Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude)
@@ -239,7 +269,6 @@ function GameEng() {
           );
           indexDeepCopy++;
         }
-        root.appendChild(element.sprite);
       });
 
       Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude = this;
@@ -248,35 +277,19 @@ function GameEng() {
         ...(Game.__reservedGameObjects[this.gameID] || []),
       ];
       Game.__gameObjectsLength = Game.__gameObjects.length;
-      const resize = () => {
-        // check what is being resized.
-        const v = () => {
-          if (this.windowWidth === window.innerWidth) {
-            return this.windowHeight / window.innerHeight;
-          }
-          return this.windowWidth / window.innerWidth;
-        };
-        const ratioYY = this.windowHeight / window.innerHeight;
-        const ratioXX = this.windowWidth / window.innerWidth;
-        Game.__gameObjects.forEach(g => {
-          g.width /= ratioXX;
-          g.height /= ratioYY;
-          g.x /= ratioXX;
-          g.y /= ratioYY;
-          g.fontSize = g.fontSize ? g.fontSize / v() : g.fontSize;
-        });
-        this.windowHeight = window.innerHeight;
-        this.windowWidth = window.innerWidth;
-      };
+
       // resize();
-      window.onresize = resize;
+      window.onresize = () => this.resize();
+      this.resize();
+      (Game.__reservedGameObjects[this.gameID] || []).forEach(e => {
+        root.appendChild(e.sprite);
+      });
       Game.__gameObjects.forEach(g => {
         g.inputs = this._input;
         g.sprite.style.display = '';
         g.awake();
         g.start();
       });
-      resize();
       // SET INTERVAL
       LIFE_CYCLE_INTERVALS.push(
         setInterval(() => {
@@ -319,6 +332,7 @@ function GameEng() {
      *              *   you can start this game again but take in mind these behaviours.
      */
     stop() {
+      window.onresize = () => {};
       root.innerHTML = '';
       Game.__gameObjects = [];
       Game.__gameObjectsLength = 0;
@@ -677,4 +691,4 @@ function GameEng() {
   };
 }
 
-const GameEngine = GameEng();
+const GameEngine = GameEng('rgb(238, 193, 177)');

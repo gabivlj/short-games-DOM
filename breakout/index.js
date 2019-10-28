@@ -22,7 +22,7 @@ const configMap = {
     offsetY: 90,
     marginTop: 50,
     marginLeft: 200,
-    getColor: () => 'red',
+    getColor: () => 'rgb(241, 162, 133)',
   },
   1: {
     brickWidth: 50,
@@ -33,7 +33,7 @@ const configMap = {
     offsetY: 50,
     marginLeft: 45,
     marginTop: 50,
-    getColor: () => 'blue',
+    getColor: () => 'rgb(241, 162, 133)',
   },
 };
 
@@ -107,12 +107,13 @@ function createMap(configurations, paddle, callback) {
       {
         text: '',
         color: 'white',
+        backgroundColor: '',
         fontSize: '45',
         reserved: true,
         reset: true,
       },
       70,
-      70,
+      700,
       0,
       0,
       ball,
