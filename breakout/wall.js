@@ -5,13 +5,13 @@ class Wall extends GameObject {
   }
 }
 
-Wall.generate = (screenX, screenY) => {
+Wall.generate = (screenX, screenY, color) => {
   const topWall = new Wall(
     screenX,
-    10,
+    40,
     0,
     {
-      backgroundColor: 'rgb(150, 162, 133)',
+      backgroundColor: color,
       reserved: true,
       collider: true,
     },
@@ -24,7 +24,7 @@ Wall.generate = (screenX, screenY) => {
     40,
     0,
     {
-      backgroundColor: 'rgb(150, 162, 133)',
+      backgroundColor: color,
       reserved: true,
       collider: true,
     },
@@ -38,7 +38,7 @@ Wall.generate = (screenX, screenY) => {
     screenY + 300,
     0,
     {
-      backgroundColor: 'rgb(150, 162, 133)',
+      backgroundColor: color,
       reserved: true,
       collider: true,
     },
@@ -52,7 +52,7 @@ Wall.generate = (screenX, screenY) => {
     screenY + 300,
     0,
     {
-      backgroundColor: 'rgb(150, 162, 133)',
+      backgroundColor: color,
       reserved: true,
       collider: true,
     },

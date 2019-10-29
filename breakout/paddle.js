@@ -20,6 +20,8 @@ class Paddle extends GameObject {
     y = 0,
     deg = 0,
     speed,
+    ball,
+    index,
   ) {
     super(
       width,
@@ -45,6 +47,8 @@ class Paddle extends GameObject {
     this.before = { x: this.x, y: this.y };
     this.currentVelocity = 0;
     this.speedBallCol = Math.abs(this.x - this.before.x);
+    this.ball = ball;
+    this.index = index;
   }
 
   collision(val) {
@@ -67,12 +71,15 @@ class Paddle extends GameObject {
       'E',
     );
     if (e) {
-      Game.useActions();
+      Game.useActions({ name: 'EXIT', data: null });
+      const scores = Store.getItem('scores') || {};
+      scores[this.index] = Math.max(scores[this.index] || 0, this.ball.score);
+      Store.addItem('scores', scores);
       return;
     }
     setTimeout(() => {
       this.before.x = this.x;
-    }, 1000);
+    }, 100);
     const dir = Math.abs(x - this.x) > 30 ? Math.sign(x - this.x) : 0;
     // console.log(dir);
     this.currentVelocity = dir * this.speed * this.deltaTime * 10;

@@ -6,11 +6,11 @@
 }
 
 body {
-  background-color: rgb(238, 193, 177);
+  background-color: #F0C987;
 }
 
 .menu {
-  background-color: rgb(238, 193, 177);
+  background-color: #F0C987;
   height: 100vh;
   width: 100vw;
   font-weight: 300;
@@ -40,9 +40,9 @@ button {
 	-webkit-transition: all 0.3s;
 	-moz-transition: all 0.3s;
   transition: all 0.3s;
-  background-color: rgb(238, 193, 177);
+  background-color: #F0C987;
 }
 
 button:hover {
-  background-color: rgb(241, 162, 133);
+  background-color: rgb(212, 178, 120);
 }

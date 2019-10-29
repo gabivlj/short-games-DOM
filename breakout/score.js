@@ -11,13 +11,33 @@ class Score extends GameObject {
     deg = 0,
     speed,
     ballRef,
+    game,
+    bricks,
   ) {
     super(width, height, lengthSpriteSheet, config, x, y, deg, speed);
     this.ballRef = ballRef;
     this.text = this.ballRef.lifes;
+    this.game = game;
+    this.bricks = bricks;
+    this.bricksLength = Infinity;
+  }
+
+  startAfterFirstRender() {
+    console.log(
+      this.bricks.reduce((prev, now) => (now.destroyed ? prev : prev + 1), 0),
+    );
+    this.bricksLength = this.bricks.reduce(
+      (prev, now) => (now.destroyed ? prev : prev + 1),
+      0,
+    );
   }
 
   lateUpdate() {
-    this.text = `Current lifes: ${this.ballRef.lifes}`;
+    this.text = `x${this.ballRef.lifes}\n${this.ballRef.score}`;
+    if (!this.ballRef.lifes && this.game.running) {
+      this.game.pause({ puntuation: this.ballRef.score, reason: 'LOST' });
+    } else if (this.bricksLength <= this.ballRef.score / 100) {
+      this.game.pause({ puntuation: this.ballRef.score, reason: 'WON' });
+    }
   }
 }

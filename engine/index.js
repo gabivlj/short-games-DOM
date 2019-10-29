@@ -10,6 +10,26 @@
  * @returns {{Game: Game, Input: Input, GameObject: GameObject }}
  */
 function GameEng(backgroundColor) {
+  /**
+   * @description Local Storage manager and parser for you!
+   */
+  class Store {
+    static addItem(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    static getItem(key) {
+      const item = localStorage.getItem(key);
+      const endItem =
+        item && item !== 'undefined' && item !== 'null' ? item : null;
+      if (!endItem) return null;
+      return JSON.parse(endItem);
+    }
+
+    static deleteItem(key) {
+      localStorage.removeItem(key);
+    }
+  }
   class Utils {
     /**
      * @description Only works with Numbers and Strings
@@ -174,7 +194,7 @@ function GameEng(backgroundColor) {
   class Game {
     constructor(
       resolutions = { x: window.innerWidth, y: window.innerHeight },
-      ...callbacks
+      globalCallbacks,
     ) {
       this.gameID = Utils.guidGenerator();
       this._input = globalInputs;
@@ -185,7 +205,9 @@ function GameEng(backgroundColor) {
       this.destroyed = false;
       this.running = false;
       this.paused = false;
-      this.callbacks = callbacks;
+      this.callbacks = globalCallbacks;
+      this.onPause = () => {};
+      this.onReady = () => {};
     }
 
     /**
@@ -203,12 +225,14 @@ function GameEng(backgroundColor) {
         .map(gameObj => Utils.keyCopies({}, gameObj));
     }
 
-    pause() {
+    pause(pauseInformation) {
       this.paused = true;
+      this.onPause(pauseInformation);
     }
 
-    ready() {
+    ready(readyInformation) {
       this.paused = false;
+      this.onReady(readyInformation);
     }
 
     resize() {
@@ -332,6 +356,7 @@ function GameEng(backgroundColor) {
      *              *   you can start this game again but take in mind these behaviours.
      */
     stop() {
+      if (this.paused) this.ready();
       window.onresize = () => {};
       root.innerHTML = '';
       Game.__gameObjects = [];
@@ -355,18 +380,14 @@ function GameEng(backgroundColor) {
         }
         return dontDestroy;
       });
-      if (gameObject.reset) {
-        Game.__reservedResetGameObjects[this.gameID] = (
-          Game.__reservedResetGameObjects[this.gameID] || []
+      if (!gameObject.reset)
+        Game.__reservedGameObjects[this.gameID] = (
+          Game.__reservedGameObjects[this.gameID] || []
         ).filter(gameObj => gameObj.instanceID !== id);
-      }
-      Game.__reservedGameObjects[this.gameID] = (
-        Game.__reservedGameObjects[this.gameID] || []
-      ).filter(gameObj => gameObj.instanceID !== id);
     }
 
-    executePersonalizedActions() {
-      this.callbacks.forEach(c => c());
+    executePersonalizedActions(...callbackAttributes) {
+      callbackAttributes.forEach(c => this.callbacks[c.name](c.data));
     }
   }
 
@@ -378,8 +399,10 @@ function GameEng(backgroundColor) {
   Game.__reservedGameObjects = {};
   // Store data of reset: true GameObjects.
   Game.__reservedResetGameObjects = {};
-  Game.useActions = () => {
-    Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude.executePersonalizedActions();
+  Game.useActions = (...callbackAttributes) => {
+    Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude.executePersonalizedActions(
+      ...callbackAttributes,
+    );
   };
 
   /**
@@ -414,6 +437,7 @@ function GameEng(backgroundColor) {
       y = 0,
       deg = 0,
     ) {
+      this.backgroundColor = backgroundColor;
       this.fontSize = `${fontSize}`;
       /**
        * @description Time in ms passed since last frame.
@@ -646,8 +670,8 @@ function GameEng(backgroundColor) {
       this.sprite.style.maxWidth = `${this.width}${this.typeOfMetric}`;
       this.sprite.style.minHeight = `${this.height}${this.typeOfMetric}`;
       this.sprite.style.maxHeight = `${this.height}${this.typeOfMetric}`;
-      this.sprite.style.fontSize = `${this.fontSize}px`;
       this.sprite.innerHTML = this.text;
+      this.sprite.style.backgroundColor = this.backgroundColor;
     }
 
     /**
@@ -685,10 +709,11 @@ function GameEng(backgroundColor) {
   return {
     Game,
     GameObject,
+    Store,
     Input,
     Utils,
     root,
   };
 }
 
-const GameEngine = GameEng('rgb(238, 193, 177)');
+const GameEngine = GameEng('#8B1E3F');

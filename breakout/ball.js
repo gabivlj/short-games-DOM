@@ -2,12 +2,14 @@
 class Ball extends GameObject {
   constructor(width, height, l, configuration, x, y, speed = 3) {
     super(width, height, l, configuration, x, y);
+    this.startingPos = { x, y };
     this.speed = speed;
     this.signX = 1;
     this.speedX = speed;
     this.speedY = speed;
     this.signY = 1;
     this.lifes = 3;
+    this.score = 0;
   }
 
   start() {}
@@ -32,12 +34,18 @@ class Ball extends GameObject {
         75,
         300,
       );
-      console.log(this.speed);
     } else if (name === 'Brick') {
+      this.score += 100;
+      if (this.score % 1000 === 0) {
+        this.speedX *= 1.6;
+        this.speedY *= 1.6;
+      }
       this.speedX = Math.max(50, this.speed - 15);
       col.colliderInformation.conditions.gameObject.collided();
     } else if (col.colliderInformation.conditions.top) {
       this.lifes--;
+      this.setPosition(this.startingPos.x, this.startingPos.y);
+      this.signY = 1;
     }
   }
 
