@@ -33,8 +33,8 @@ function createMap(configurations, callback, index) {
     probabilityToAppear,
     randomnessY = [1, 1],
   } = configurations;
-  for (let i = 0; i < nBricksX; i++) {
-    for (let j = 0; j < nBricksY; j++) {
+  for (let i = 0; i < nBricksX; i += 1) {
+    for (let j = 0; j < nBricksY; j += 1) {
       bricks.push(
         Brick.createBrick({
           y:

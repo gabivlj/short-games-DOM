@@ -18,6 +18,15 @@ function GameEng(backgroundColor) {
       localStorage.setItem(key, JSON.stringify(data));
     }
 
+    static modifyItemArray(key, callback) {
+      const item = localStorage.getItem(key);
+      const array = JSON.parse(
+        !item || item === 'undefined' || item === 'null' ? '[]' : item,
+      );
+      const finalArray = callback(array);
+      localStorage.setItem(key, JSON.stringify(finalArray));
+    }
+
     static getItem(key) {
       const item = localStorage.getItem(key);
       const endItem =
@@ -307,18 +316,20 @@ function GameEng(backgroundColor) {
       this.resize();
       (Game.__reservedGameObjects[this.gameID] || []).forEach(e => {
         root.appendChild(e.sprite);
+        if (e.useUpdate) Game.__gameObjectsUpdate.push(e);
       });
       Game.__gameObjects.forEach(g => {
         g.inputs = this._input;
         g.sprite.style.display = '';
         g.awake();
+        g._start();
         g.start();
       });
       // SET INTERVAL
       LIFE_CYCLE_INTERVALS.push(
         setInterval(() => {
           if (this.paused) return;
-          Game.__gameObjects.forEach(g => {
+          Game.__gameObjectsUpdate.forEach(g => {
             g.inputs = this._input;
             g.update();
             g._update();
@@ -329,7 +340,7 @@ function GameEng(backgroundColor) {
         const dt = Date.now();
         if (this.paused) return;
         // console.log(Game.__GAME_OBJECTS);
-        Game.__gameObjects.forEach(g => {
+        Game.__gameObjectsUpdate.forEach(g => {
           // Fixed update.
           g.fixedUpdate();
           g._update();
@@ -360,6 +371,7 @@ function GameEng(backgroundColor) {
       window.onresize = () => {};
       root.innerHTML = '';
       Game.__gameObjects = [];
+      Game.__gameObjectsUpdate = [];
       Game.__gameObjectsLength = 0;
       Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude = null;
       LIFE_CYCLE_INTERVALS.forEach(i => clearInterval(i));
@@ -376,10 +388,21 @@ function GameEng(backgroundColor) {
       Game.__gameObjects = Game.__gameObjects.filter(gameObj => {
         const dontDestroy = gameObj.instanceID !== id;
         if (!dontDestroy) {
+          gameObj.destroyed = true;
           Utils.destroyDOMElement(gameObj.sprite);
         }
         return dontDestroy;
       });
+
+      Game.__gameObjectsUpdate = Game.__gameObjectsUpdate.filter(gameObj => {
+        const dontDestroy = gameObj.instanceID !== id;
+        if (!dontDestroy) {
+          gameObj.destroyed = true;
+          Utils.destroyDOMElement(gameObj.sprite);
+        }
+        return dontDestroy;
+      });
+
       if (!gameObject.reset)
         Game.__reservedGameObjects[this.gameID] = (
           Game.__reservedGameObjects[this.gameID] || []
@@ -399,6 +422,7 @@ function GameEng(backgroundColor) {
   Game.__reservedGameObjects = {};
   // Store data of reset: true GameObjects.
   Game.__reservedResetGameObjects = {};
+  Game.__gameObjectsUpdate = [];
   Game.useActions = (...callbackAttributes) => {
     Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude.executePersonalizedActions(
       ...callbackAttributes,
@@ -432,13 +456,19 @@ function GameEng(backgroundColor) {
         collider = false,
         text = '',
         fontSize = '10px',
+        gameObjectsToCollideTo = {},
+        useUpdate = true,
       },
       x = 0,
       y = 0,
       deg = 0,
     ) {
+      this.__collisions = [];
+      this.useUpdate = useUpdate;
+      this.destroyed = false;
       this.backgroundColor = backgroundColor;
       this.fontSize = `${fontSize}`;
+      this.gameObjectsToCollideTo = gameObjectsToCollideTo;
       /**
        * @description Time in ms passed since last frame.
        */
@@ -527,6 +557,7 @@ function GameEng(backgroundColor) {
 
       if (!reserved) {
         Game.__gameObjects.push(this);
+        if (useUpdate) Game.__gameObjectsUpdate.push(this);
         Game.__gameObjectsLength++;
       }
       if (reset && !reserved) {
@@ -654,6 +685,21 @@ function GameEng(backgroundColor) {
       this.y = y;
     }
 
+    _start() {
+      this.sprite.style.position = 'absolute';
+      this.sprite.style.top = `${this.y}${this.typeOfMetric}`;
+      this.sprite.style.left = `${this.x}${this.typeOfMetric}`;
+      this._rotate();
+      this.sprite.style.width = `${this.width}${this.typeOfMetric}`;
+      this.sprite.style.height = `${this.height}${this.typeOfMetric}`;
+      this.sprite.style.minWidth = `${this.width}${this.typeOfMetric}`;
+      this.sprite.style.maxWidth = `${this.width}${this.typeOfMetric}`;
+      this.sprite.style.minHeight = `${this.height}${this.typeOfMetric}`;
+      this.sprite.style.maxHeight = `${this.height}${this.typeOfMetric}`;
+      this.sprite.innerHTML = this.text;
+      this.sprite.style.backgroundColor = this.backgroundColor;
+    }
+
     /**
      * @private
      * @doNotChangeOrItWillBreak
@@ -677,27 +723,37 @@ function GameEng(backgroundColor) {
     /**
      * @description Executes before start
      */
-    awake() {}
+    awake() {
+      return true;
+    }
 
     /**
      * @description Executes one time.
      */
-    start() {}
+    start() {
+      return true;
+    }
 
     /**
      * @description Executes whenever it can
      */
-    update() {}
+    update() {
+      return true;
+    }
 
     /**
      * @description Executes in a fixed time
      */
-    fixedUpdate() {}
+    fixedUpdate() {
+      return true;
+    }
 
     /**
      * @description Executes after all updates.
      */
-    lateUpdate() {}
+    lateUpdate() {
+      return true;
+    }
 
     /**
      * @description Executes once after the first lifecycle

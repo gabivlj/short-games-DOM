@@ -40,6 +40,7 @@ Brick.createBrick = ({ height, width, color, x, y, probabilityToAppear }) => {
       reset: true,
       collider: true,
       borderRadius: '6.5%',
+      useUpdate: false,
     },
     x,
     y,

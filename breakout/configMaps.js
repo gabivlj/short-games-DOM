@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-const configMap = {
+let configMap = {
   0: {
     brickWidth: 110,
     brickHeight: 20.5,
@@ -36,4 +36,30 @@ const configMap = {
     probabilityToAppear: 1,
     ...choose(palettes, false),
   },
+  ...Store.getItem('maps').reduce(
+    (prev, now, index) => ({
+      ...prev,
+      [index + 3]: {
+        ...now,
+        ...chooseSpecific(palettes, now.type),
+        marginLeft: 45,
+        marginTop: 50,
+      },
+    }),
+    {},
+  ),
 };
+
+function updateConfigMaps(item) {
+  configMap = {
+    ...configMap,
+    [Object.keys(configMap).length]: {
+      ...item,
+      ...chooseSpecific(palettes, item.type),
+      marginLeft: 45,
+      marginTop: 50,
+    },
+  };
+}
+
+console.log(configMap);

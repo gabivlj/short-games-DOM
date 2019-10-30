@@ -20,17 +20,82 @@ const createButtonsMenu = scores => `
 </div>
 `;
 
+function addConfigMap(inputs) {
+  const inputValues = inputs.map(input => parseFloat(input.value, 10));
+  const inputValuesParsed = inputValues.filter(c => typeof c === 'number');
+  if (inputValues.length !== inputValuesParsed.length)
+    return { error: 'Check inputs!' };
+  const [
+    brickWidth,
+    brickHeight,
+    nBricksX,
+    nBricksY,
+    offsetX,
+    offsetY,
+    probabilityToAppear,
+  ] = inputValuesParsed;
+  const map = {
+    brickHeight,
+    brickWidth,
+    nBricksX,
+    nBricksY,
+    offsetX,
+    offsetY,
+    probabilityToAppear,
+  };
+  Store.modifyItemArray('maps', array => {
+    array.push(map);
+    return array;
+  });
+  updateConfigMaps(map);
+  reset();
+  document.querySelector('.back').click();
+  return {};
+}
+
+function getSubmitClick(menus) {
+  const element = menus[currentMenuDOM]().getElementsByClassName(
+    'submit-map',
+  )[0];
+  if (!element) return;
+  element.addEventListener('click', e => {
+    console.log(menus[currentMenuDOM]());
+    const inputs = [...menus[currentMenuDOM]().getElementsByClassName('input')];
+    addConfigMap(inputs, element);
+  });
+}
+
 menuDOM.innerHTML = createButtonsMenu(Store.getItem('scores') || {});
 
 const menuForm = document.createElement('div');
 
 menuForm.id = 'menuForm';
 menuForm.innerHTML = `
-    Brick Width
-    <input type="number" input="input-brickWidth"></input>
+  <div style="padding-left: 50px" class="form-map">
+    <div>Brick Width:</div> 
+    <input type="number" class="input input-brickWidth"></input>
+    <br />
     Brick Height
-    <input type="number" input="input-brickWidth"></input>
+    <input type="number" class="input input-brickHeight"></input>
+    <br />
+    Number of Bricks (X AXIS) 
+    <input type="number" class="input input-nBricksX"></input>
+    <br />
+    Number of Bricks (Y AXIS)
+    <input type="number" class="input input-nBricksY"></input>
+    <br />
+    Offset between bricks in X axis ( > Width )
+    <input type="number" class="input input-offsetX"></input>
+    <br />
+    Offset between bricks in Y axis ( > Height )
+    <input type="number" class="input input-offsetY"></input>
+    <br />
+    Probabilities to appear
+    <input type="number" class="input input-probabilityToAppear"></input>
+    <br />
+    <button class="submit-map">Submit map</button>
     <button class="back">Back</button>
+  <div>
 `;
 
 const menuMain = document.createElement('div');
@@ -71,13 +136,15 @@ function display() {
     currentMenuDOM = 1;
     display();
   });
-  if (menus[currentMenuDOM]().id !== 'menuMain')
+  if (menus[currentMenuDOM]().id !== 'menuMain') {
     menus[currentMenuDOM]()
       .getElementsByClassName('back')[0]
       .addEventListener('click', () => {
         currentMenuDOM = Math.max(0, currentMenuDOM - 1);
         display();
       });
+    getSubmitClick(menus);
+  }
   menuDOM.getElementsByClassName('redo')[0].addEventListener('click', () => {
     reset();
   });
