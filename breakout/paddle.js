@@ -53,12 +53,31 @@ class Paddle extends GameObject {
 
   collision(val) {
     const col = this.detectCollision();
+    console.log();
     if (col.collided) {
-      if (col.colliderInformation.conditions.right) {
-        this.position(-val);
-      } else if (col.colliderInformation.conditions.left) {
-        this.position(-val);
+      const { gameObject } = col.colliderInformation.conditions;
+      const goType = Utils.GetType(gameObject);
+      if (goType === 'PowerUp') {
+        const { type } = gameObject.type;
+        if (type === 'LIFE') {
+          this.ball.lifes++;
+        } else if (type === 'PADDLE_BIGGER') {
+          this.width += 40;
+          if (this.x > 1000) this.position(-40);
+        } else if (type === 'BALL_SLOW') {
+          const less = this.ball.speedX / 5;
+          this.ball.speedX -= less;
+          this.ball.speedY -= less;
+          setTimeout(() => {
+            this.ball.speedX += less;
+            this.ball.speedY += less;
+          }, 10000);
+        }
+        Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude.destroy(
+          gameObject,
+        );
       }
+      this.position(-val);
     }
   }
 
@@ -70,6 +89,7 @@ class Paddle extends GameObject {
       'MOUSEY',
       'E',
     );
+    const position = x - this.width / 2;
     if (e) {
       Game.useActions({ name: 'EXIT', data: null });
       const scores = Store.getItem('scores') || {};
@@ -80,7 +100,8 @@ class Paddle extends GameObject {
     setTimeout(() => {
       this.before.x = this.x;
     }, 100);
-    const dir = Math.abs(x - this.x) > 30 ? Math.sign(x - this.x) : 0;
+    const dir =
+      Math.abs(position - this.x) > 30 ? Math.sign(position - this.x) : 0;
     // console.log(dir);
     this.currentVelocity = dir * this.speed * this.deltaTime * 10;
     this.position(this.currentVelocity, 0);

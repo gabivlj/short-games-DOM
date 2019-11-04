@@ -52,6 +52,10 @@ function GameEng(backgroundColor) {
       return copy;
     }
 
+    static GetType(gameObject) {
+      return gameObject.constructor.name;
+    }
+
     static Clamp(value, x, y) {
       if (value <= x) return x;
       if (value >= y) return y;
@@ -59,6 +63,8 @@ function GameEng(backgroundColor) {
     }
 
     static destroyDOMElement(element) {
+      console.log(element);
+      console.log(element.parentNode);
       element.parentNode.removeChild(element);
     }
 
@@ -388,6 +394,7 @@ function GameEng(backgroundColor) {
       Game.__gameObjects = Game.__gameObjects.filter(gameObj => {
         const dontDestroy = gameObj.instanceID !== id;
         if (!dontDestroy) {
+          if (Utils.GetType(gameObj) === 'PowerUp') console.log(gameObj);
           gameObj.destroyed = true;
           Utils.destroyDOMElement(gameObj.sprite);
         }
@@ -396,7 +403,7 @@ function GameEng(backgroundColor) {
 
       Game.__gameObjectsUpdate = Game.__gameObjectsUpdate.filter(gameObj => {
         const dontDestroy = gameObj.instanceID !== id;
-        if (!dontDestroy) {
+        if (!dontDestroy && !gameObj.destroyed) {
           gameObj.destroyed = true;
           Utils.destroyDOMElement(gameObj.sprite);
         }
@@ -759,6 +766,13 @@ function GameEng(backgroundColor) {
      * @description Executes once after the first lifecycle
      */
     startAfterFirstRender() {}
+
+    destroy() {
+      console.log(this.sprite);
+      Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude.destroy(
+        this,
+      );
+    }
   }
   document.body.style.overflowY = 'hidden';
   document.body.style.overflowX = 'hidden';

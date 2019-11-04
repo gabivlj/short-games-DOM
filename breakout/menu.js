@@ -57,9 +57,9 @@ function getSubmitClick(menus) {
   const element = menus[currentMenuDOM]().getElementsByClassName(
     'submit-map',
   )[0];
+  console.log(element);
   if (!element) return;
   element.addEventListener('click', e => {
-    console.log(menus[currentMenuDOM]());
     const inputs = [...menus[currentMenuDOM]().getElementsByClassName('input')];
     addConfigMap(inputs, element);
   });
@@ -123,6 +123,7 @@ const menus = [
   () => menuMain,
   () => {
     menuDOM.innerHTML = createButtonsMenu(Store.getItem('scores') || {});
+    menuDOM.id = 'Menu2';
     return menuDOM;
   },
   () => menuForm,
@@ -130,20 +131,22 @@ const menus = [
 
 function display() {
   main.innerHTML = '<h1 class="title">THE BREAKOUT</h1>';
-  main.appendChild(menus[currentMenuDOM]());
+  const menu = menus[currentMenuDOM]();
+  main.appendChild(menu);
   main.style.display = '';
-  menuMain.getElementsByTagName('button')[0].addEventListener('click', () => {
-    currentMenuDOM = 1;
-    display();
-  });
-  if (menus[currentMenuDOM]().id !== 'menuMain') {
-    menus[currentMenuDOM]()
-      .getElementsByClassName('back')[0]
-      .addEventListener('click', () => {
-        currentMenuDOM = Math.max(0, currentMenuDOM - 1);
-        display();
-      });
-    getSubmitClick(menus);
+  if (menu.id === 'menuMain')
+    menuMain.getElementsByTagName('button')[0].addEventListener('click', () => {
+      currentMenuDOM = 1;
+      display();
+    });
+  if (menu.id !== 'menuMain') {
+    const button = menu.getElementsByClassName('back')[0];
+    button.onclick = e => {
+      console.log(currentMenuDOM);
+      currentMenuDOM = Math.max(0, currentMenuDOM - 1);
+      display();
+    };
+    if (menu.id !== 'Menu2') getSubmitClick(menus);
   }
   menuDOM.getElementsByClassName('redo')[0].addEventListener('click', () => {
     reset();

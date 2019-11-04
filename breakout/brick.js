@@ -1,4 +1,4 @@
-const { GameObject, Game, Input, Utils, root, Store } = GameEngine;
+/* eslint-disable no-undef */
 
 class Brick extends GameObject {
   constructor(
@@ -17,7 +17,17 @@ class Brick extends GameObject {
     this.destroyed = false;
   }
 
-  collided() {
+  collided(powerUpSpawn = true) {
+    if (powerUpSpawn && Math.random() > 0.5) {
+      const _ = new PowerUp(
+        100,
+        30,
+        0,
+        { backgroundColor: 'red' },
+        this.x,
+        this.y,
+      );
+    }
     this.destroyed = true;
     Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude.destroy(
       this,
@@ -25,7 +35,7 @@ class Brick extends GameObject {
   }
 
   start() {
-    if (this.probs <= this.destroyThis) this.collided();
+    if (this.probs <= this.destroyThis) this.collided(false);
   }
 }
 

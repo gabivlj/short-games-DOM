@@ -19,13 +19,14 @@ class Ball extends GameObject {
 
     if (!col || !col.collided) return;
     const { name } = col.colliderInformation.conditions.gameObject.constructor;
-    if (col.colliderInformation.conditions.bot) {
-      this.signY = -1;
-    } else if (col.colliderInformation.conditions.top) {
-      this.signY = 1;
-    } else if (col.colliderInformation.conditions.right) {
-      this.signX = 1;
-    } else this.signX = -1;
+    if (name !== 'PowerUp')
+      if (col.colliderInformation.conditions.bot) {
+        this.signY = -1;
+      } else if (col.colliderInformation.conditions.top) {
+        this.signY = 1;
+      } else if (col.colliderInformation.conditions.right) {
+        this.signX = 1;
+      } else this.signX = -1;
     if (name === 'Paddle') {
       this.speedX = Utils.Clamp(
         (this.speedX *
@@ -42,7 +43,7 @@ class Ball extends GameObject {
       }
       this.speedX = Math.max(50, this.speed - 15);
       col.colliderInformation.conditions.gameObject.collided();
-    } else if (col.colliderInformation.conditions.top) {
+    } else if (col.colliderInformation.conditions.top && name !== 'PowerUp') {
       this.lifes--;
       this.setPosition(this.startingPos.x, this.startingPos.y);
       this.signY = 1;
