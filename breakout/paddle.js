@@ -15,6 +15,7 @@ class Paddle extends GameObject {
       reserved = false,
       reset = false,
       collider = true,
+      optimizedColliders = [],
     },
     x = 0,
     y = 0,
@@ -38,6 +39,7 @@ class Paddle extends GameObject {
         reserved,
         reset,
         collider,
+        optimizedColliders,
       },
       x,
       y,
@@ -51,10 +53,12 @@ class Paddle extends GameObject {
     this.index = index;
   }
 
+  start() {}
+
   collision(val) {
-    const col = this.detectCollision();
-    console.log();
-    if (col.collided) {
+    const colliders = this.detectCollisionsOptimizedCollider();
+    // const col = this.detectCollision();
+    colliders.forEach(col => {
       const { gameObject } = col.colliderInformation.conditions;
       const goType = Utils.GetType(gameObject);
       if (goType === 'PowerUp') {
@@ -78,7 +82,32 @@ class Paddle extends GameObject {
         );
       }
       this.position(-val);
-    }
+    });
+    // if (col.collided) {
+    //   const { gameObject } = col.colliderInformation.conditions;
+    //   const goType = Utils.GetType(gameObject);
+    //   if (goType === 'PowerUp') {
+    //     const { type } = gameObject.type;
+    //     if (type === 'LIFE') {
+    //       this.ball.lifes++;
+    //     } else if (type === 'PADDLE_BIGGER') {
+    //       this.width += 40;
+    //       if (this.x > 1000) this.position(-40);
+    //     } else if (type === 'BALL_SLOW') {
+    //       const less = this.ball.speedX / 5;
+    //       this.ball.speedX -= less;
+    //       this.ball.speedY -= less;
+    //       setTimeout(() => {
+    //         this.ball.speedX += less;
+    //         this.ball.speedY += less;
+    //       }, 10000);
+    //     }
+    //     Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude.destroy(
+    //       gameObject,
+    //     );
+    //   }
+    //   this.position(-val);
+    // }
   }
 
   update() {

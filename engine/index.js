@@ -10,6 +10,15 @@
  * @returns {{Game: Game, Input: Input, GameObject: GameObject }}
  */
 function GameEng(backgroundColor) {
+  function findOptimizedColliders(game, gameObject) {
+    game.__gameObjects.forEach(other => {
+      if (
+        gameObject._optimizedCollidersDictionary[Utils.GetType(other)] &&
+        gameObject.instanceID !== other.instanceID
+      )
+        gameObject._optimizedColliders.push(other);
+    });
+  }
   /**
    * @description Local Storage manager and parser for you!
    */
@@ -63,8 +72,6 @@ function GameEng(backgroundColor) {
     }
 
     static destroyDOMElement(element) {
-      console.log(element);
-      console.log(element.parentNode);
       element.parentNode.removeChild(element);
     }
 
@@ -316,6 +323,11 @@ function GameEng(backgroundColor) {
         ...(Game.__reservedGameObjects[this.gameID] || []),
       ];
       Game.__gameObjectsLength = Game.__gameObjects.length;
+      Game.__gameObjects.forEach(gameObject => {
+        findOptimizedColliders(Game, gameObject);
+        if (Utils.GetType(gameObject) === 'Paddle')
+          console.log(gameObject._optimizedColliders);
+      });
 
       // resize();
       window.onresize = () => this.resize();
@@ -380,6 +392,12 @@ function GameEng(backgroundColor) {
       Game.__gameObjectsUpdate = [];
       Game.__gameObjectsLength = 0;
       Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude = null;
+      Game.__reservedGameObjects[this.gameID].forEach(g => {
+        g._optimizedColliders = [];
+      });
+      Game.__reservedResetGameObjects[this.gameID].forEach(g => {
+        g._optimizedColliders = [];
+      });
       LIFE_CYCLE_INTERVALS.forEach(i => clearInterval(i));
       this.destroyed = true;
       Game.__IDGameStoredBefore = this.gameID;
@@ -394,7 +412,6 @@ function GameEng(backgroundColor) {
       Game.__gameObjects = Game.__gameObjects.filter(gameObj => {
         const dontDestroy = gameObj.instanceID !== id;
         if (!dontDestroy) {
-          if (Utils.GetType(gameObj) === 'PowerUp') console.log(gameObj);
           gameObj.destroyed = true;
           Utils.destroyDOMElement(gameObj.sprite);
         }
@@ -408,6 +425,12 @@ function GameEng(backgroundColor) {
           Utils.destroyDOMElement(gameObj.sprite);
         }
         return dontDestroy;
+      });
+
+      Game.__gameObjects.forEach(g => {
+        g._optimizedColliders = g._optimizedColliders.filter(
+          gameObj => gameObj.instanceID !== gameObject.instanceID,
+        );
       });
 
       if (!gameObject.reset)
@@ -465,11 +488,17 @@ function GameEng(backgroundColor) {
         fontSize = '10px',
         gameObjectsToCollideTo = {},
         useUpdate = true,
+        optimizedColliders = [],
       },
       x = 0,
       y = 0,
       deg = 0,
     ) {
+      this._optimizedCollidersDictionary = optimizedColliders.reduce(
+        (prev, now) => ({ ...prev, [now.name]: now }),
+        {},
+      );
+      this._optimizedColliders = [];
       this.__collisions = [];
       this.useUpdate = useUpdate;
       this.destroyed = false;
@@ -561,12 +590,6 @@ function GameEng(backgroundColor) {
       this.sprite = domInstance;
       this.__dom = domInstance;
       this._rotate();
-
-      if (!reserved) {
-        Game.__gameObjects.push(this);
-        if (useUpdate) Game.__gameObjectsUpdate.push(this);
-        Game.__gameObjectsLength++;
-      }
       if (reset && !reserved) {
         console.warn('Reset won`t work if you don`t pass the reserved bool.');
       }
@@ -576,9 +599,77 @@ function GameEng(backgroundColor) {
         Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude &&
         !reserved
       ) {
+        Game.__gameObjects.push(this);
+        Game.__gameObjects.forEach(g =>
+          g._optimizedCollidersDictionary[Utils.GetType(this)]
+            ? g._optimizedColliders.push(this)
+            : null,
+        );
+        if (useUpdate) Game.__gameObjectsUpdate.push(this);
+        Game.__gameObjectsLength++;
         this.awake();
         this.start();
       }
+    }
+
+    /**
+     * @description Detects collision from the optimized collider system.
+     * @returns Array of collided objects
+     */
+    detectCollisionsOptimizedCollider() {
+      const arrayOfGO = [];
+      const bottom = this.y + this.height;
+      const right = this.x + this.width;
+      this._optimizedColliders.forEach(collider => {
+        if (collider.instanceID === this.instanceID) return;
+        const tileBottom = collider.y + collider.height;
+        const tileRight = collider.x + collider.width;
+        const bCollision = Math.floor(tileBottom - this.y);
+        const tCollision = Math.floor(bottom - collider.y);
+        const lCollision = Math.floor(right - collider.x);
+        const rCollision = Math.floor(tileRight - this.x);
+
+        const conditions = {
+          left:
+            lCollision < rCollision &&
+            lCollision < tCollision &&
+            lCollision < bCollision,
+          top:
+            tCollision < rCollision &&
+            tCollision < lCollision &&
+            tCollision < bCollision,
+          right:
+            rCollision < tCollision &&
+            rCollision < lCollision &&
+            rCollision < bCollision,
+          bot:
+            bCollision < tCollision &&
+            bCollision < lCollision &&
+            bCollision < rCollision,
+          info: {
+            bCollision,
+            tCollision,
+            lCollision,
+            rCollision,
+          },
+          gameObject: collider,
+        };
+        if (
+          this.x < collider.x + collider.width &&
+          this.instanceID !== collider.instanceID &&
+          this.x + this.width > collider.x &&
+          this.y < collider.y + collider.height &&
+          this.height + this.y > collider.y
+        )
+          arrayOfGO.push({
+            collided: true,
+            colliderInformation: {
+              conditions,
+              collided: true,
+            },
+          });
+      });
+      return arrayOfGO;
     }
 
     /**
@@ -768,7 +859,6 @@ function GameEng(backgroundColor) {
     startAfterFirstRender() {}
 
     destroy() {
-      console.log(this.sprite);
       Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude.destroy(
         this,
       );

@@ -76,6 +76,7 @@ function createMap(configurations, callback, index) {
       borderRadius: '2%',
       reset: true,
       reserved: true,
+      optimizedColliders: [Ball, Wall, PowerUp],
     },
     880,
     900,
