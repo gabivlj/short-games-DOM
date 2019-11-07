@@ -36,7 +36,7 @@ let configMap = {
     probabilityToAppear: 1,
     ...choose(palettes, false),
   },
-  ...Store.getItem('maps').reduce(
+  ...(Store.getItem('maps') || []).reduce(
     (prev, now, index) => ({
       ...prev,
       [index + 3]: {

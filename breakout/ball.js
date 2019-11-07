@@ -2,7 +2,7 @@
 class Ball extends GameObject {
   constructor(width, height, l, configuration, x, y, speed = 3) {
     super(width, height, l, configuration, x, y);
-    this.startingPos = { x, y };
+    this.startingPos = { x, y: y - 40 };
     this.speed = speed;
     this.signX = 1;
     this.speedX = speed;
@@ -38,14 +38,14 @@ class Ball extends GameObject {
     } else if (name === 'Brick') {
       this.score += 100;
       if (this.score % 1000 === 0) {
-        this.speedX *= 1.6;
-        this.speedY *= 1.6;
+        this.speedX *= 1.3;
+        this.speedY *= 1.3;
       }
       this.speedX = Math.max(50, this.speed - 15);
       col.colliderInformation.conditions.gameObject.collided();
     } else if (col.colliderInformation.conditions.top && name !== 'PowerUp') {
       this.lifes--;
-      this.setPosition(this.startingPos.x, this.startingPos.y);
+      this.setPosition(window.innerWidth / 2, window.innerHeight / 1.25);
       this.signY = 1;
     }
   }

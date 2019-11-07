@@ -5,7 +5,7 @@
 
 const SCREEN_RESOLUTION = {
   x: 1900,
-  y: 1080,
+  y: 1000,
 };
 const ratio = 1920 / (window.innerHeight + window.innerWidth);
 
@@ -15,7 +15,11 @@ const rY = n => (window.innerHeight / 1000) * n;
 const r = n => n / ratio;
 
 function createMap(configurations, callback, index) {
-  const game0 = new Game(SCREEN_RESOLUTION, { EXIT: callback });
+  const game0 = new Game(
+    SCREEN_RESOLUTION,
+    { EXIT: callback },
+    { backgroundColor: 'white' },
+  );
   const bricks = [];
   const {
     nBricksX,
@@ -68,21 +72,31 @@ function createMap(configurations, callback, index) {
   );
 
   const paddle = new Paddle(
-    300,
-    20,
-    0,
+    300, // width
+    20, // height
+    0, // lengthOfSpriteSheet (0 because there is not a spritesheet).
+    // Config object.
     {
       backgroundColor: '#442B48',
       borderRadius: '2%',
-      reset: true,
+      // Reserve the game in the scene.
       reserved: true,
+      // Reset the object when there is a scene change.
+      reset: true,
+      // OptimizedColliders so the engine does not check all of the bricks every tick
       optimizedColliders: [Ball, Wall, PowerUp],
     },
+    // X Position
     880,
+    // Y Position
     900,
+    // Degrees.
     0,
+    // Speed
     100,
+    // Ball reference.
     ball,
+    // Index
     index,
   );
 
@@ -102,12 +116,12 @@ function createMap(configurations, callback, index) {
         text: '',
         color: 'white',
         backgroundColor: '',
-        fontSize: '45',
+        fontSize: '20',
         reserved: true,
         reset: true,
       },
       70,
-      900,
+      10,
       0,
       0,
       ball,
@@ -135,6 +149,7 @@ function initGame() {
     games.push(
       createMap(
         configMap[key],
+        // OnPress E.
         puntuation => {
           CURRENT_GAME_STATE = GAME_STATES.EXIT_GAME;
           process();

@@ -57,10 +57,10 @@ function getSubmitClick(menus) {
   const element = menus[currentMenuDOM]().getElementsByClassName(
     'submit-map',
   )[0];
-  console.log(element);
   if (!element) return;
   element.addEventListener('click', e => {
     const inputs = [...menus[currentMenuDOM]().getElementsByClassName('input')];
+    console.log(inputs);
     addConfigMap(inputs, element);
   });
 }

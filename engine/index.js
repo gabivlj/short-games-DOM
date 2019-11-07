@@ -2,7 +2,19 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-param-reassign */
-// browser compatibility.
+
+/**
+ * TODOs:
+ * *More palettes.
+ * *Better interface in the game.
+ * *Center the lose screen.
+ * *When winning or losing, save on local storage.
+ * *Power point with the points of Bear article.
+ * *Reset maps.
+ * *Better forms.
+ * *Inform what you got with the powerups
+ * *Sound
+ */
 
 /**
  * @description Creates a new engine when called.
@@ -216,7 +228,8 @@ function GameEng(backgroundColor) {
   class Game {
     constructor(
       resolutions = { x: window.innerWidth, y: window.innerHeight },
-      globalCallbacks,
+      globalCallbacks = {},
+      configuration = { backgroundColor: 'white' },
     ) {
       this.gameID = Utils.guidGenerator();
       this._input = globalInputs;
@@ -228,6 +241,7 @@ function GameEng(backgroundColor) {
       this.running = false;
       this.paused = false;
       this.callbacks = globalCallbacks;
+      this.backgroundColor = configuration.backgroundColor;
       this.onPause = () => {};
       this.onReady = () => {};
     }
@@ -236,6 +250,10 @@ function GameEng(backgroundColor) {
      * @description When you wanna preload or you don't want some gameObjects to be destroyed when stopped add them to this.
      */
     reserve(...gameObjects) {
+      gameObjects.forEach(g => {
+        g.windowHeight = this.windowHeight;
+        g.windowWidth = this.windowWidth;
+      });
       Game.__reservedGameObjects[this.gameID] = [...gameObjects];
       Game.__reservedGameObjects[this.gameID] = Game.__reservedGameObjects[
         this.gameID
@@ -265,29 +283,49 @@ function GameEng(backgroundColor) {
         }
         return this.windowWidth / window.innerWidth;
       };
-      const ratioYY = this.windowHeight / window.innerHeight;
-      const ratioXX = this.windowWidth / window.innerWidth;
       Game.__gameObjects.forEach(g => {
+        if (Utils.GetType(g) === 'Wall') console.log(g.width);
+        if (!g.windowWidth) g.windowWidth = this.windowWidth;
+        if (!g.windowHeight) g.windowHeight = this.windowHeight;
+        g.windowHeight = this.windowHeight;
+        const ratioYY = g.windowHeight / window.innerHeight;
+        const ratioXX = g.windowWidth / window.innerWidth;
+        console.log(ratioXX);
         g.width /= ratioXX;
         g.height /= ratioYY;
-        g.x /= ratioXX;
-        g.y /= ratioYY;
+        g.x = g.x === 0 ? 0 : g.x / ratioXX;
+        g.y = g.y === 0 ? 0 : g.y / ratioYY;
+        if (Utils.GetType(g) === 'Wall') console.log(`After ratioed:`, g.width);
+        g._update();
+        if (Utils.GetType(g) === 'Wall') console.log(`After updated:`, g.width);
         g.fontSize = g.fontSize ? g.fontSize / v() : g.fontSize;
+        g.windowWidth = window.innerWidth;
+        g.windowHeight = window.innerHeight;
       });
 
-      Game.__reservedResetGameObjects[this.gameID].forEach(g => {
-        g.width /= ratioXX;
-        g.height /= ratioYY;
-        g.x /= ratioXX;
-        g.y /= ratioYY;
-        g.fontSize = g.fontSize ? g.fontSize / v() : g.fontSize;
-      });
+      // Game.__reservedGameObjects[this.gameID].forEach(g => {
+      //   g.sprite.style.width = g.width;
+      //   g.sprite.style.height = g.height;
+      //   g.sprite.style.left = g.x;
+      //   g.sprite.style.top = g.y;
+      //   g._update();
+      //   g.fontSize = g.fontSize ? g.fontSize / v() : g.fontSize;
+      // });
+
+      // Game.__reservedResetGameObjects[this.gameID].forEach(g => {
+      //   g.sprite.style.width = g.width;
+      //   g.sprite.style.height = g.height;
+      //   g.sprite.style.left = g.x;
+      //   g.sprite.style.top = g.y;
+      //   g.fontSize = g.fontSize ? g.fontSize / v() : g.fontSize;
+      // });
 
       this.windowHeight = window.innerHeight;
       this.windowWidth = window.innerWidth;
     }
 
     start() {
+      document.body.style.backgroundColor = this.backgroundColor;
       // Sanity check
       if (Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude)
         throw new Error(
@@ -299,13 +337,6 @@ function GameEng(backgroundColor) {
           `There are GameObjects that don't exist in this game: GAME_OBJECTS: ${Game.__gameObjects}`,
         );
       }
-
-      // Check if the game has been destroyed before and instantiate the reserved
-      // if (Game.__IDGameStoredBefore !== this.gameID) {
-      //   console.log(
-      //     (Game.__reservedGameObjects[this.gameID][0].sprite.style.display =
-      //       ''),
-      //   );
       let indexDeepCopy = 0;
       (Game.__reservedGameObjects[this.gameID] || []).forEach(element => {
         if (element.reset) {
@@ -494,6 +525,8 @@ function GameEng(backgroundColor) {
       y = 0,
       deg = 0,
     ) {
+      this.windowHeight = 0;
+      this.windowWidth = 0;
       this._optimizedCollidersDictionary = optimizedColliders.reduce(
         (prev, now) => ({ ...prev, [now.name]: now }),
         {},
@@ -585,6 +618,7 @@ function GameEng(backgroundColor) {
       domInstance.style.maxHeight = `${height}${this.typeOfMetric}`;
       domInstance.style.fontSize = `${this.fontSize}px`;
       domInstance.innerText = text;
+      domInstance.style.backgroundRepeat = 'no-repeat';
       this.reserved = reserved;
       if (!reserved) root.appendChild(domInstance);
       this.sprite = domInstance;

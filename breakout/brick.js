@@ -20,8 +20,8 @@ class Brick extends GameObject {
   collided(powerUpSpawn = true) {
     if (powerUpSpawn && Math.random() > 0.5) {
       const _ = new PowerUp(
-        100,
-        30,
+        70,
+        70,
         0,
         { backgroundColor: 'red' },
         this.x,

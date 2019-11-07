@@ -23,9 +23,6 @@ class Score extends GameObject {
   }
 
   startAfterFirstRender() {
-    console.log(
-      this.bricks.reduce((prev, now) => (now.destroyed ? prev : prev + 1), 0),
-    );
     this.bricksLength = this.bricks.reduce(
       (prev, now) => (now.destroyed ? prev : prev + 1),
       0,
@@ -33,7 +30,7 @@ class Score extends GameObject {
   }
 
   lateUpdate() {
-    this.text = `x${this.ballRef.lifes}\n${this.ballRef.score}`;
+    this.text = `Lifes: ${this.ballRef.lifes}\n Score: ${this.ballRef.score}`;
     if (!this.ballRef.lifes && this.game.running) {
       this.game.pause({ puntuation: this.ballRef.score, reason: 'LOST' });
     } else if (this.bricksLength <= this.ballRef.score / 100) {
