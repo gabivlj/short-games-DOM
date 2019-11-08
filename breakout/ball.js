@@ -12,9 +12,16 @@ class Ball extends GameObject {
     this.lifes = 3;
     this.score = 0;
     this.slowed = false;
+    this.soundPaddle = null;
   }
 
-  start() {}
+  start() {
+    this.soundPaddle = new Sound('./sound/paddleBall.mp3');
+  }
+
+  play() {
+    this.soundPaddle.play();
+  }
 
   collisionBall() {
     // Tries to detect collision with every object. Not optimal but in ball's case
@@ -37,12 +44,13 @@ class Ball extends GameObject {
       } else this.signX = -1;
     }
     if (name === 'Paddle') {
+      this.play();
       this.speedX = Utils.Clamp(
         (this.speedX *
           col.colliderInformation.conditions.gameObject.speedBallCol) /
           3,
-        75,
-        300,
+        200,
+        this.speed,
       );
     } else if (name === 'Brick') {
       this.score += 100;

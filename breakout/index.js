@@ -18,7 +18,7 @@ function createMap(configurations, callback, index) {
   const game0 = new Game(
     SCREEN_RESOLUTION,
     { EXIT: callback },
-    { backgroundColor: 'white' },
+    { backgroundColor: '#2f215c' },
   );
   const bricks = [];
   const {
@@ -109,7 +109,7 @@ function createMap(configurations, callback, index) {
     ball,
     paddle,
     new Score(
-      400,
+      10000,
       100,
       0,
       {

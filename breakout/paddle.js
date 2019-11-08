@@ -1,3 +1,4 @@
+/* eslint-disable no-plusplus */
 /* eslint-disable no-undef */
 class Paddle extends GameObject {
   constructor(
@@ -51,6 +52,7 @@ class Paddle extends GameObject {
     this.speedBallCol = Math.abs(this.x - this.before.x);
     this.ball = ball;
     this.index = index;
+    this.sound = new Sound('./sound/powerup.mp3');
   }
 
   start() {}
@@ -62,6 +64,7 @@ class Paddle extends GameObject {
       const { gameObject, left, right } = col.colliderInformation.conditions;
       const goType = Utils.GetType(gameObject);
       if (goType === 'PowerUp') {
+        this.sound.play();
         const { type } = gameObject.type;
         if (type === 'LIFE') {
           this.ball.lifes++;
@@ -120,14 +123,7 @@ class Paddle extends GameObject {
   }
 
   update() {
-    const [l, r, x, y, e] = Input.getInputs(
-      'LEFT',
-      'RIGHT',
-      'MOUSEX',
-      'MOUSEY',
-      'E',
-    );
-    const position = x - this.width / 2;
+    const [x, e] = Input.getInputs('MOUSEX', 'E');
     if (e) {
       Game.useActions({ name: 'EXIT', data: null });
       const scores = Store.getItem('scores') || {};
@@ -135,8 +131,9 @@ class Paddle extends GameObject {
       Store.addItem('scores', scores);
       return;
     }
+    const position = x - this.width / 2;
     setTimeout(() => {
-      this.before.x = this.x;
+      this.before.x = position;
     }, 100);
     const dir =
       Math.abs(position - this.x) > 10 ? Math.sign(position - this.x) : 0;

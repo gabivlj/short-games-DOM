@@ -7,10 +7,8 @@
  * TODOs:
  * *More palettes.
  * *Better interface in the game. <- sure
- * *Better forms. <-- idk about that one chieeef.
  * *Inform what you got with the powerups. <---- tmrw
  * *Sound <--- maybe if i feel like it idk
- * *
  */
 
 /**
@@ -19,6 +17,25 @@
  * @returns {{Game: Game, Input: Input, GameObject: GameObject }}
  */
 function GameEng(backgroundColor) {
+  class Sound {
+    constructor(src) {
+      this.sound = document.createElement('audio');
+      this.sound.src = src;
+      this.sound.setAttribute('preload', 'auto');
+      this.sound.setAttribute('controls', 'none');
+      this.sound.style.display = 'none';
+      document.body.appendChild(this.sound);
+    }
+
+    play() {
+      this.sound.play();
+    }
+
+    stop() {
+      this.sound.pause();
+    }
+  }
+
   function findOptimizedColliders(game, gameObject) {
     game.__gameObjects.forEach(other => {
       if (
@@ -161,6 +178,7 @@ function GameEng(backgroundColor) {
       /**
        * @description The purpose of this is check in every frame what input is being checked and that it goes smooth.
        */
+      const inputKeys = Object.keys(INPUTS);
       window.onkeydown = window.onkeyup = e => {
         // eslint-disable-next-line no-restricted-globals
         e = e || event; // to deal with IE
@@ -171,7 +189,7 @@ function GameEng(backgroundColor) {
           processInput(this.EXTRA_INPUTS, keyNumber, key, 'DOWN', 'BOT');
           processInput(this.EXTRA_INPUTS, keyNumber, key, 'LEFT', 'LEFT');
           processInput(this.EXTRA_INPUTS, keyNumber, key, 'RIGHT', 'RIGHT');
-          Object.keys(INPUTS).forEach(key => {
+          inputKeys.forEach(key => {
             processInput(
               this.EXTRA_INPUTS,
               keyNumber,
@@ -365,35 +383,42 @@ function GameEng(backgroundColor) {
         g._start();
         g.start();
       });
+      const timestep = 1000 / 60;
+      const timestepUpdate = 1000 / 190;
       // SET INTERVAL
+      let started = false;
       LIFE_CYCLE_INTERVALS.push(
         setInterval(() => {
+          if (started) {
+            console.log('EATEN?');
+            return;
+          }
+          const dt = Date.now();
+          started = true;
           if (this.paused) return;
           Game.__gameObjectsUpdate.forEach(g => {
             g.inputs = this._input;
             g.update();
             g._update();
+            g.lateUpdate();
+            g._update();
           });
-        }, 0.1),
+          started = false;
+          this.deltaTime = Date.now() - dt ? 0.001 : Date.now() - dt / 100;
+        }, timestepUpdate),
       );
-      const lateUpdate = () => {
-        const dt = Date.now();
+      const lateUpdate = timestamp => {
         if (this.paused) return;
-        // console.log(Game.__GAME_OBJECTS);
         Game.__gameObjectsUpdate.forEach(g => {
           // Fixed update.
           g.fixedUpdate();
           g._update();
-          // We promised that there would be a fixed update.
-          g.lateUpdate();
-          g._update();
         });
-        this.deltaTime = Date.now() - dt ? 0.001 : Date.now() - dt / 100;
       };
       LIFE_CYCLE_INTERVALS.push(
         setInterval(() => {
           requestAnimationFrame(lateUpdate);
-        }, 60),
+        }, timestep),
       );
       this.running = true;
       Game.__gameObjects.forEach(g => g.startAfterFirstRender());
@@ -901,6 +926,7 @@ function GameEng(backgroundColor) {
     Input,
     Utils,
     root,
+    Sound,
   };
 }
 

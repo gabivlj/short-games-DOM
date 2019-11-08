@@ -76,22 +76,28 @@ menuForm.innerHTML = `
     <div>Brick Width:</div> 
     <input type="number" class="input input-brickWidth"></input>
     <br />
-    Brick Height
+    Brick Height:
+    <br />
     <input type="number" class="input input-brickHeight"></input>
     <br />
-    Number of Bricks (X AXIS) 
+    Number of Bricks (X AXIS):
+    <br />
     <input type="number" class="input input-nBricksX"></input>
     <br />
-    Number of Bricks (Y AXIS)
+    Number of Bricks (Y AXIS):
+    <br />
     <input type="number" class="input input-nBricksY"></input>
     <br />
-    Offset between bricks in X axis ( > Width )
+    Offset between bricks in X axis ( > Width ):
+    <br />
     <input type="number" class="input input-offsetX"></input>
     <br />
-    Offset between bricks in Y axis ( > Height )
+    Offset between bricks in Y axis ( > Height ):
+    <br />
     <input type="number" class="input input-offsetY"></input>
     <br />
-    Probabilities to appear
+    Probabilities to appear:
+    <br />
     <input type="number" class="input input-probabilityToAppear"></input>
     <br />
     <button class="submit-map">Submit map</button>

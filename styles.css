@@ -9,6 +9,27 @@ body {
   background-color: #F0C987;
 }
 
+
+  /* Fields */
+::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+  color:    #aaa;
+}
+:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+ color:    #aaa;
+ opacity:  1;
+}
+::-moz-placeholder { /* Mozilla Firefox 19+ */
+ color:    #aaa;
+ opacity:  1;
+}
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+ color:    #aaa;
+}
+::-ms-input-placeholder { /* Microsoft Edge */
+ color:    #aaa;
+}
+
+
 .menu {
   background-color: #F0C987;
   height: 100vh;
@@ -45,4 +66,26 @@ button {
 
 button:hover {
   background-color: rgb(212, 178, 120);
+}
+
+input {
+  margin:0;
+	border:0;
+	padding:0;
+	display:inline-block;
+	vertical-align:middle;
+	white-space:normal;
+	background:none;
+	line-height:1;
+	
+	/* Browsers have different default form fonts */
+	font-size:13px;
+  font-family:Arial;
+
+  border: 1px coral solid;
+  height: 30px;
+  font-size: 20px;
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
