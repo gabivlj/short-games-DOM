@@ -127,6 +127,7 @@ function createMap(configurations, callback, index) {
       ball,
       game0,
       bricks,
+      index,
     ),
   );
   return game0;
@@ -150,7 +151,7 @@ function initGame() {
       createMap(
         configMap[key],
         // OnPress E.
-        puntuation => {
+        () => {
           CURRENT_GAME_STATE = GAME_STATES.EXIT_GAME;
           process();
         },
@@ -170,9 +171,16 @@ function initGame() {
   });
 }
 
-function reset() {
+function reset(resetMaps = false) {
   games = [];
+  if (resetMaps) {
+    Store.addItem('maps', []);
+    Store.addItem('scores', {});
+    updateConfigMaps();
+  }
+  console.log(configMap);
   initGame();
+  display();
 }
 
 initGame();

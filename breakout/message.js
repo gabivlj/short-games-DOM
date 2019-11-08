@@ -1,5 +1,5 @@
 const generateMessage = p => `
-<div>
+<div class="menu">
   Score: ${p}
   <button class="modalButton">Go back</button>
 </div>

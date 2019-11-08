@@ -6,14 +6,11 @@
 /**
  * TODOs:
  * *More palettes.
- * *Better interface in the game.
- * *Center the lose screen.
- * *When winning or losing, save on local storage.
- * *Power point with the points of Bear article.
- * *Reset maps.
- * *Better forms.
- * *Inform what you got with the powerups
- * *Sound
+ * *Better interface in the game. <- sure
+ * *Better forms. <-- idk about that one chieeef.
+ * *Inform what you got with the powerups. <---- tmrw
+ * *Sound <--- maybe if i feel like it idk
+ * *
  */
 
 /**
@@ -284,20 +281,16 @@ function GameEng(backgroundColor) {
         return this.windowWidth / window.innerWidth;
       };
       Game.__gameObjects.forEach(g => {
-        if (Utils.GetType(g) === 'Wall') console.log(g.width);
         if (!g.windowWidth) g.windowWidth = this.windowWidth;
         if (!g.windowHeight) g.windowHeight = this.windowHeight;
         g.windowHeight = this.windowHeight;
         const ratioYY = g.windowHeight / window.innerHeight;
         const ratioXX = g.windowWidth / window.innerWidth;
-        console.log(ratioXX);
         g.width /= ratioXX;
         g.height /= ratioYY;
         g.x = g.x === 0 ? 0 : g.x / ratioXX;
         g.y = g.y === 0 ? 0 : g.y / ratioYY;
-        if (Utils.GetType(g) === 'Wall') console.log(`After ratioed:`, g.width);
         g._update();
-        if (Utils.GetType(g) === 'Wall') console.log(`After updated:`, g.width);
         g.fontSize = g.fontSize ? g.fontSize / v() : g.fontSize;
         g.windowWidth = window.innerWidth;
         g.windowHeight = window.innerHeight;
@@ -356,8 +349,6 @@ function GameEng(backgroundColor) {
       Game.__gameObjectsLength = Game.__gameObjects.length;
       Game.__gameObjects.forEach(gameObject => {
         findOptimizedColliders(Game, gameObject);
-        if (Utils.GetType(gameObject) === 'Paddle')
-          console.log(gameObject._optimizedColliders);
       });
 
       // resize();
@@ -468,6 +459,7 @@ function GameEng(backgroundColor) {
         Game.__reservedGameObjects[this.gameID] = (
           Game.__reservedGameObjects[this.gameID] || []
         ).filter(gameObj => gameObj.instanceID !== id);
+      gameObject.onDestroy();
     }
 
     executePersonalizedActions(...callbackAttributes) {
@@ -650,18 +642,18 @@ function GameEng(backgroundColor) {
      * @description Detects collision from the optimized collider system.
      * @returns Array of collided objects
      */
-    detectCollisionsOptimizedCollider() {
+    detectCollisionsOptimizedCollider({ x = 0, y = 0 }) {
       const arrayOfGO = [];
-      const bottom = this.y + this.height;
-      const right = this.x + this.width;
+      const bottom = this.y + y + this.height;
+      const right = this.x + x + this.width;
       this._optimizedColliders.forEach(collider => {
         if (collider.instanceID === this.instanceID) return;
         const tileBottom = collider.y + collider.height;
         const tileRight = collider.x + collider.width;
-        const bCollision = Math.floor(tileBottom - this.y);
+        const bCollision = Math.floor(tileBottom - this.y + y);
         const tCollision = Math.floor(bottom - collider.y);
         const lCollision = Math.floor(right - collider.x);
-        const rCollision = Math.floor(tileRight - this.x);
+        const rCollision = Math.floor(tileRight - this.x + x);
 
         const conditions = {
           left:
@@ -689,11 +681,11 @@ function GameEng(backgroundColor) {
           gameObject: collider,
         };
         if (
-          this.x < collider.x + collider.width &&
+          this.x + x < collider.x + collider.width &&
           this.instanceID !== collider.instanceID &&
-          this.x + this.width > collider.x &&
-          this.y < collider.y + collider.height &&
-          this.height + this.y > collider.y
+          this.x + x + this.width > collider.x &&
+          this.y + y < collider.y + collider.height &&
+          this.height + this.y + y > collider.y
         )
           arrayOfGO.push({
             collided: true,
@@ -891,6 +883,8 @@ function GameEng(backgroundColor) {
      * @description Executes once after the first lifecycle
      */
     startAfterFirstRender() {}
+
+    onDestroy() {}
 
     destroy() {
       Game.__essentialVariableToKeepTrackOfTheGreatGamesYoureCreatingMyDude.destroy(

@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* eslint-disable no-param-reassign */
 // eslint-disable-next-line no-undef
 class Score extends GameObject {
@@ -13,6 +14,7 @@ class Score extends GameObject {
     ballRef,
     game,
     bricks,
+    index,
   ) {
     super(width, height, lengthSpriteSheet, config, x, y, deg, speed);
     this.ballRef = ballRef;
@@ -20,6 +22,7 @@ class Score extends GameObject {
     this.game = game;
     this.bricks = bricks;
     this.bricksLength = Infinity;
+    this.index = index;
   }
 
   startAfterFirstRender() {
@@ -32,9 +35,21 @@ class Score extends GameObject {
   lateUpdate() {
     this.text = `Lifes: ${this.ballRef.lifes}\n Score: ${this.ballRef.score}`;
     if (!this.ballRef.lifes && this.game.running) {
+      const scores = Store.getItem('scores') || {};
+      scores[this.index] = Math.max(
+        scores[this.index] || 0,
+        this.ballRef.score,
+      );
+      Store.addItem('scores', scores);
       this.game.pause({ puntuation: this.ballRef.score, reason: 'LOST' });
     } else if (this.bricksLength <= this.ballRef.score / 100) {
       this.game.pause({ puntuation: this.ballRef.score, reason: 'WON' });
+      const scores = Store.getItem('scores') || {};
+      scores[this.index] = Math.max(
+        scores[this.index] || 0,
+        this.ballRef.score,
+      );
+      Store.addItem('scores', scores);
     }
   }
 }

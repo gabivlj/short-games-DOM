@@ -49,7 +49,8 @@ function addConfigMap(inputs) {
   });
   updateConfigMaps(map);
   reset();
-  document.querySelector('.back').click();
+  const back = document.querySelector('.back');
+  if (back) back.click();
   return {};
 }
 
@@ -58,11 +59,11 @@ function getSubmitClick(menus) {
     'submit-map',
   )[0];
   if (!element) return;
-  element.addEventListener('click', e => {
+  element.onclick = e => {
     const inputs = [...menus[currentMenuDOM]().getElementsByClassName('input')];
-    console.log(inputs);
     addConfigMap(inputs, element);
-  });
+    element.onclick = () => {};
+  };
 }
 
 menuDOM.innerHTML = createButtonsMenu(Store.getItem('scores') || {});
@@ -149,7 +150,7 @@ function display() {
     if (menu.id !== 'Menu2') getSubmitClick(menus);
   }
   menuDOM.getElementsByClassName('redo')[0].addEventListener('click', () => {
-    reset();
+    reset(true);
   });
   menuDOM.getElementsByClassName('create')[0].addEventListener('click', () => {
     currentMenuDOM = 2;
