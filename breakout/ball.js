@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 class Ball extends GameObject {
-  constructor(width, height, l, configuration, x, y, speed = 3) {
+  constructor(width, height, l, configuration, x, y, speed = 3, lastBrickY) {
     super(width, height, l, configuration, x, y);
     this.colorOriginal = configuration.backgroundColor;
     this.startingPos = { x, y: y - 40 };
@@ -13,6 +13,7 @@ class Ball extends GameObject {
     this.score = 0;
     this.slowed = false;
     this.soundPaddle = null;
+    this.lastBrickY = lastBrickY;
   }
 
   start() {
@@ -23,9 +24,20 @@ class Ball extends GameObject {
     this.soundPaddle.play();
   }
 
-  collisionBall() {
+  collideLogic() {
+    if (this.y > this.lastBrickY + 100) {
+      const colliders = this.detectCollisionsOptimizedCollider({ x: 0 });
+      colliders.forEach(col => {
+        this.collisionBall(col);
+      });
+    } else {
+      this.collisionBall(this.detectCollision());
+    }
+  }
+
+  collisionBall(col) {
     // Tries to detect collision with every object. Not optimal but in ball's case
-    const col = this.detectCollision();
+
     if (!col || !col.collided) return;
     const { name } = col.colliderInformation.conditions.gameObject.constructor;
     if (name !== 'PowerUp') {
@@ -59,8 +71,8 @@ class Ball extends GameObject {
         this.speedY *= 1.3;
       }
       this.speedX = Math.max(50, this.speed - 15);
-      this.speedX = Math.min(this.speedX, 300);
-      this.speedY = Math.min(this.speedY, 300);
+      this.speedX = Math.min(this.speedX, 500);
+      this.speedY = Math.min(this.speedY, 500);
       col.colliderInformation.conditions.gameObject.collided();
     } else if (col.colliderInformation.conditions.top && name !== 'PowerUp') {
       this.lifes--;
@@ -75,7 +87,7 @@ class Ball extends GameObject {
     } else {
       this.backgroundColor = this.colorOriginal;
     }
-    this.collisionBall();
+    this.collideLogic();
     this.position(
       this.speedX * this.signX * this.deltaTime,
       this.speedY * this.signY * this.deltaTime,

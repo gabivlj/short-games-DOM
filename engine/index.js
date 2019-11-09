@@ -8,7 +8,6 @@
  * *More palettes.
  * *Better interface in the game. <- sure
  * *Inform what you got with the powerups. <---- tmrw
- * *Sound <--- maybe if i feel like it idk
  */
 
 /**
@@ -62,12 +61,42 @@ function GameEng(backgroundColor) {
       localStorage.setItem(key, JSON.stringify(finalArray));
     }
 
+    static modifyObject(key, callback) {
+      const item = localStorage.getItem(key);
+      const endItem =
+        item && item !== 'undefined' && item !== 'null' ? item : null;
+      const endItemReturn = callback(JSON.parse(endItem));
+      localStorage.setItem(key, JSON.stringify(endItemReturn));
+    }
+
     static getItem(key) {
       const item = localStorage.getItem(key);
       const endItem =
         item && item !== 'undefined' && item !== 'null' ? item : null;
       if (!endItem) return null;
       return JSON.parse(endItem);
+    }
+
+    static deleteIndex(key, index) {
+      const item = localStorage.getItem(key);
+      const endItem =
+        item && item !== 'undefined' && item !== 'null' ? item : null;
+      if (!endItem) return null;
+      const parsed = JSON.parse(endItem);
+      const parsedEnd = parsed.filter((_, i) => i !== index);
+      localStorage.setItem(key, JSON.stringify(parsedEnd));
+      return true;
+    }
+
+    static deleteKey(key, keyIndex) {
+      const item = localStorage.getItem(key);
+      const endItem =
+        item && item !== 'undefined' && item !== 'null' ? item : null;
+      if (!endItem) return null;
+      const parsed = JSON.parse(endItem);
+      delete parsed[keyIndex];
+      localStorage.setItem(key, JSON.stringify(parsed));
+      return true;
     }
 
     static deleteItem(key) {

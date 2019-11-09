@@ -164,6 +164,36 @@ function display() {
   });
   // We do this concat. because we cannot forEach() a NodeList, so this is a shortcut to Array.from().
   [...menuDOM.getElementsByTagName('button')].forEach(element => {
+    element.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      if (
+        String(e.toElement.className) !== 'back' &&
+        String(e.toElement.classList.item(0)) !== 'redo' &&
+        String(e.toElement.className) !== 'create'
+      ) {
+        const number = e.toElement.innerHTML.split(' ')[1];
+        if (!number) return;
+        const index = number - NUMBER_OF_ORIGINAL_MAPS - 1;
+        if (index < 0) {
+          return;
+        }
+        Store.deleteIndex('maps', index);
+        Store.deleteKey('scores', number - 1);
+        Store.modifyObject('scores', e => {
+          for (let i = 0; i < games.length; i++) {
+            if (parseInt(number, 10) === i) {
+              e[i - 1] = e[i];
+              delete e[i];
+            }
+          }
+          return e;
+        });
+        updateConfigMaps();
+        reset();
+        display();
+      }
+      // display();
+    });
     element.addEventListener('click', e => {
       if (
         String(e.toElement.className) !== 'back' &&

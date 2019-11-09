@@ -1,15 +1,16 @@
 /* eslint-disable no-undef */
+const NUMBER_OF_ORIGINAL_MAPS = 3;
 const originalMaps = {
   0: {
     brickWidth: 110,
-    brickHeight: 20.5,
-    nBricksX: 1,
+    brickHeight: 80,
+    nBricksX: 10,
     nBricksY: 6,
     offsetX: 150,
     offsetY: 90,
     marginTop: 50,
     marginLeft: 200,
-    probabilityToAppear: 0.5,
+    probabilityToAppear: 1,
     ...choose(palettes, false),
   },
   1: {
@@ -21,7 +22,7 @@ const originalMaps = {
     offsetY: 50,
     marginLeft: 45,
     marginTop: 50,
-    probabilityToAppear: 0.75,
+    probabilityToAppear: 0.9,
     ...choose(palettes, false),
   },
   2: {
@@ -43,7 +44,7 @@ let configMap = {
   ...(Store.getItem('maps') || []).reduce(
     (prev, now, index) => ({
       ...prev,
-      [index + 3]: {
+      [index + NUMBER_OF_ORIGINAL_MAPS]: {
         ...now,
         ...chooseSpecific(palettes, now.type),
         marginLeft: 45,
@@ -60,7 +61,25 @@ function updateConfigMaps(item) {
   if (!item) {
     configMap = {
       ...originalMaps,
+      ...(Store.getItem('maps') || []).reduce(
+        (prev, now, index) => ({
+          ...prev,
+          [index + NUMBER_OF_ORIGINAL_MAPS]: {
+            ...now,
+            ...chooseSpecific(palettes, now.type),
+            marginLeft: 45,
+            marginTop: 50,
+          },
+        }),
+        {},
+      ),
     };
+    Object.keys(configMap).forEach(k => {
+      configMap[k] = {
+        ...configMap[k],
+        ...choose(palettes, false),
+      };
+    });
     return;
   }
   configMap = {

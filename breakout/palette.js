@@ -20,6 +20,13 @@ const palettes = [
     type: 'Winter',
   },
   {
+    ballColor: '#9C89B8',
+    brickColor: () => choose(['#F0A6CA', '#9C89B8', '#F0E6EF', '#B8BEDD']),
+    wallsColor: '#9C89B8',
+    paddleColor: '#F0E6EF',
+    type: 'Winter',
+  },
+  {
     ballColor: '#0267C1',
     brickColor: () => choose(['#5F4BB6', '#0267C1', '#591F0A', '#D65108']),
     wallsColor: '#0267C1',

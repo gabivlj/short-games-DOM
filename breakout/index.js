@@ -37,15 +37,17 @@ function createMap(configurations, callback, index) {
     probabilityToAppear,
     randomnessY = [1, 1],
   } = configurations;
+  let lastY = 0;
   for (let i = 0; i < nBricksX; i += 1) {
     for (let j = 0; j < nBricksY; j += 1) {
+      const y =
+        offsetY * j +
+        Utils.Clamp(Math.random() * 10, randomnessY[0], randomnessY[1]) +
+        10 +
+        marginTop;
       bricks.push(
         Brick.createBrick({
-          y:
-            offsetY * j +
-            Utils.Clamp(Math.random() * 10, randomnessY[0], randomnessY[1]) +
-            10 +
-            marginTop,
+          y,
           x: offsetX * i + 10 + marginLeft,
           height: brickHeight,
           width: brickWidth,
@@ -53,6 +55,9 @@ function createMap(configurations, callback, index) {
           probabilityToAppear,
         }),
       );
+      if (j === nBricksY - 1) {
+        lastY = y;
+      }
     }
   }
 
@@ -65,10 +70,12 @@ function createMap(configurations, callback, index) {
       borderRadius: '50%',
       reserved: true,
       reset: true,
+      optimizedColliders: [Wall, Paddle],
     },
     800,
     900,
     130,
+    lastY,
   );
 
   const paddle = new Paddle(
