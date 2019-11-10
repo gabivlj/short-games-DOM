@@ -179,9 +179,11 @@ function display() {
         }
         Store.deleteIndex('maps', index);
         Store.deleteKey('scores', number - 1);
+        let found = false;
         Store.modifyObject('scores', e => {
           for (let i = 0; i < games.length; i++) {
-            if (parseInt(number, 10) === i) {
+            if (parseInt(number, 10) === i || found) {
+              found = true;
               e[i - 1] = e[i];
               delete e[i];
             }
